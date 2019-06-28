@@ -16,7 +16,7 @@ services:
     volumes:
       - ./config/dispatcher:/config
   db:
-    image: semtech/mu-authorization:dev
+    image: semtech/mu-authorization:latest
     volumes:
       - ./config/authorization:/config
     environment:
