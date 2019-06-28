@@ -1,0 +1,13 @@
+version: '3.4'
+
+services:
+  frontend:
+    ports:
+      - "81:80"
+  deltanotifier:
+    volumes:
+      - ./config/delta-producer:/config 
+  producer:
+    image: redpencil/poc-diff-producer-service:latest
+    volumes:
+      - /tmp/share:/data

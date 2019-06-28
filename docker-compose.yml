@@ -1,12 +1,14 @@
 version: '3.4'
 
 services:
+  frontend:
+    image: redpencil/frontend-poc-diff:latest
+    links:
+      - identifier:backend
   identifier:
     image: semtech/mu-identifier:1.7.0
     links:
       - dispatcher:dispatcher
-    ports:
-      - "80:80"
     environment:
       DEFAULT_MU_AUTH_ALLOWED_GROUPS_HEADER: "[{\"variables\":[],\"name\":\"public\"},{\"variables\":[],\"name\":\"clear\"}]"
   dispatcher:
@@ -16,7 +18,7 @@ services:
     volumes:
       - ./config/dispatcher:/config
   db:
-    image: semtech/mu-authorization:latest
+    image: semtech/mu-authorization:dev
     volumes:
       - ./config/authorization:/config
     environment:
@@ -31,13 +33,20 @@ services:
     environment:
       SPARQL_UPDATE: "true"
       DEFAULT_GRAPH: "http://mu.semte.ch/application"
-    ports:
-      - "8890:8890"
     volumes:
       - ./data/db:/data
   resource:
-    image: semtech/mu-cl-resources:1.17.1
+    image: semtech/mu-cl-resources
     links:
       - db:database
     volumes:
       - ./config/resources:/config
+  deltanotifier:
+    image: semtech/mu-delta-notifier
+    environment:
+      LOG_REQUESTS: "true"
+      DEBUG_DELTA_SEND: "true"
+      DEBUG_DELTA_MATCH: "true"
+      DEBUG_TRIPLE_MATCHES_SPEC: "true"
+    labels:
+      - logging
