@@ -1,0 +1,17 @@
+version: '3.4'
+
+services:
+  frontend-consumer:
+    image: redpencil/frontend-poc-diff:latest
+    links:
+      - db:database
+    ports:
+      - "7575:80"
+  consumer:
+    image: redpencil/poc-diff-consumer-service:latest
+    links:
+      - db:database
+    ports:
+      - "7070:80"
+    volumes:
+      - /tmp/share:/share
