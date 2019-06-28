@@ -7,6 +7,8 @@ services:
       - dispatcher:dispatcher
     ports:
       - "80:80"
+    environment:
+      DEFAULT_MU_AUTH_ALLOWED_GROUPS_HEADER: "[{\"variables\":[],\"name\":\"public\"},{\"variables\":[],\"name\":\"clear\"}]"
   dispatcher:
     image: semtech/mu-dispatcher:1.1.2
     links:
