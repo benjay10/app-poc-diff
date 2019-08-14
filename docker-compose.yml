@@ -18,7 +18,7 @@ services:
     volumes:
       - ./config/dispatcher:/config
   db:
-    image: semtech/mu-authorization:dev
+    image: semtech/mu-authorization:0.4.0
     volumes:
       - ./config/authorization:/config
     environment:
@@ -36,7 +36,7 @@ services:
     volumes:
       - ./data/db:/data
   resource:
-    image: semtech/mu-cl-resources
+    image: semtech/mu-cl-resources:1.18.0
     links:
       - db:database
     volumes:
