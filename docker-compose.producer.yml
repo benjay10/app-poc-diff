@@ -4,10 +4,23 @@ services:
   frontend:
     ports:
       - "81:80"
+    environment:
+      STATIC_FOLDERS_REGEX: "^/(assets|font|files)/"
   deltanotifier:
     volumes:
-      - ./config/delta-producer:/config 
+      - ./config/delta-producer:/config
   producer:
     image: redpencil/poc-diff-producer-service:latest
+    links:
+      - db:database
     volumes:
-      - /tmp/share:/data
+      - ./data/files:/share
+  file:
+    image: semtech/mu-file-service:3.1.0
+    links:
+      - db:database
+    environment:
+      MU_APPLICATION_GRAPH: "http://mu.semte.ch/graphs/public"
+    volumes:
+      - ./data/files:/share
+
