@@ -29,6 +29,14 @@ defmodule Dispatcher do
     Proxy.forward conn, path, "http://resource/authors/"
   end
 
+  get "/files/:id/download" do
+    Proxy.forward conn, [], "http://file/files/" <> id <> "/download"
+  end
+
+  get "/sync/files/*path" do
+    Proxy.forward conn, path, "http://producer/files/"
+  end
+
   match _ do
     send_resp( conn, 404, "Route not found.  See config/dispatcher.ex" )
   end
