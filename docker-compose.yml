@@ -18,7 +18,7 @@ services:
     volumes:
       - ./config/dispatcher:/config
   db:
-    image: semtech/mu-authorization:0.4.0
+    image: semtech/mu-authorization:0.6.0-beta.1
     volumes:
       - ./config/authorization:/config
     environment:
@@ -36,13 +36,13 @@ services:
     volumes:
       - ./data/db:/data
   resource:
-    image: semtech/mu-cl-resources:1.18.0
+    image: semtech/mu-cl-resources:1.19.0-beta.1
     links:
       - db:database
     volumes:
       - ./config/resources:/config
   deltanotifier:
-    image: semtech/mu-delta-notifier
+    image: semtech/mu-delta-notifier:0.1.0
     environment:
       LOG_REQUESTS: "true"
       DEBUG_DELTA_SEND: "true"
