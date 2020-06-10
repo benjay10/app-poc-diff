@@ -1,9 +1,10 @@
 version: '3.4'
 
 services:
-  frontend:
+  identifier:
     ports:
       - "81:80"
+  frontend:
     environment:
       STATIC_FOLDERS_REGEX: "^/(assets|font|files)/"
   deltanotifier:

@@ -1,7 +1,7 @@
 version: '3.4'
 
 services:
-  frontend:
+  identifier:
     ports:
       - "82:80"
   deltanotifier:
