@@ -7,8 +7,22 @@ services:
   deltanotifier:
     volumes:
       - ./config/delta-consumer:/config
+    networks:
+      - deltanotifier
+      - resource
   consumer:
     image: redpencil/poc-diff-consumer-service:latest
     links:
       - db:database
-
+    networks:
+      - db
+      - producer_identifier
+    environment:
+      SYNC_BASE_URL: 'http://identifier/'
+    # environment:
+    #   SYNC_BASE_URL: 'http://books.rpio-dev.s.redpencil.io'
+networks:
+  consumer:
+  producer_identifier:
+    external:
+      name: app-poc-diff-producer_identifier

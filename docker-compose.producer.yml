@@ -7,15 +7,29 @@ services:
   frontend:
     environment:
       STATIC_FOLDERS_REGEX: "^/(assets|font|files)/"
+  dispatcher:
+    networks:
+      - dispatcher
+      - resource
+      - producer
+      - file
+      - frontend
   deltanotifier:
     volumes:
       - ./config/delta-producer:/config
+    networks:
+      - producer
+      - resource
+      - deltanotifier
   producer:
     image: redpencil/poc-diff-producer-service:latest
     links:
       - db:database
     volumes:
       - ./data/files:/share
+    networks:
+      - producer
+      - db
   file:
     image: semtech/mu-file-service:latest
     links:
@@ -24,4 +38,6 @@ services:
       MU_APPLICATION_GRAPH: "http://mu.semte.ch/graphs/public"
     volumes:
       - ./data/files:/share
-
+    networks:
+      - file
+      - db
