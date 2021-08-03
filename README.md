@@ -1,24 +1,22 @@
-# mu-project
+# app-poc-diff
 
-Bootstrap a mu.semte.ch microservices environment in three easy steps.
+Project demonstrating a concept for delta sync between different applications
 
-## How to
+## Starting the PoC
 
-Setting up your environment is done in three easy steps:  first you configure the running microservices and their names in `docker-compose.yml`, then you configure how requests are dispatched in `config/dispatcher.ex`, and lastly you start everything.
+First, start the producer using
 
-### Hooking things up with docker-compose
+```
+docker-compose -f docker-compose.yml -f docker-compose.producer.yml -p producer up -d
+```
 
-Alter the `docker-compose.yml` file so it contains all microservices you need.  The example content should be clear, but you can find more information in the [Docker Compose documentation](https://docs.docker.com/compose/).  Don't remove the `identifier` and `db` container, they are respectively the entry-point and the database of your application.  Don't forget to link the necessary microservices to the dispatcher and the database to the microservices.
+Then, start the consumer using
 
-### Configure the dispatcher
+```
+docker-compose -f docker-compose.yml -f docker-compose.consumer.yml -p consumer up -d
+```
 
-Next, alter the file `config/dispatcher.ex` based on the example that is there by default.  Dispatch requests to the necessary microservices based on the names you used for the microservice.
+The producer is accessible at localhost:81 and the consumer at localhost:82.
 
-### Boot up the system
+The project names must be exactly these names because the `external-link` key is used in the Docker Compose configuration.
 
-Boot your microservices-enabled system using docker-compose.
-
-    cd /path/to/mu-project
-    docker-compose up
-
-You can shut down using `docker-compose stop` and remove everything using `docker-compose rm`.

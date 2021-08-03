@@ -4,11 +4,27 @@ services:
   frontend:
     ports:
       - "82:80"
+    environment:
+      STATIC_FOLDERS_REGEX: "^/(assets|font|files)/"
   deltanotifier:
     volumes:
       - ./config/delta-consumer:/config
   consumer:
     image: redpencil/poc-diff-consumer-service:latest
     links:
-      - db:database
+      - database
+    external_links:
+      - producer_identifier_1:producer
+    environment:
+      SYNC_BASE_URL: "http://producer"
+    networks:
+      - default
+      - producer
+  triplestore:
+    volumes:
+      - ./data2/db:/data
 
+networks:
+  producer:
+    external: true
+    name: producer

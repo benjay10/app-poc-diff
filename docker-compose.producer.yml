@@ -1,6 +1,10 @@
 version: '3.4'
 
 services:
+  identifier:
+    networks:
+      - default
+      - producer
   frontend:
     ports:
       - "81:80"
@@ -12,15 +16,18 @@ services:
   producer:
     image: redpencil/poc-diff-producer-service:latest
     links:
-      - db:database
+      - database
     volumes:
       - ./data/files:/share
   file:
     image: semtech/mu-file-service:latest
     links:
-      - db:database
+      - database
     environment:
       MU_APPLICATION_GRAPH: "http://mu.semte.ch/graphs/public"
     volumes:
       - ./data/files:/share
 
+networks:
+  producer:
+    name: producer

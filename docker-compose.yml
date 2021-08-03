@@ -17,7 +17,7 @@ services:
       - resource:resource
     volumes:
       - ./config/dispatcher:/config
-  db:
+  database:
     image: semtech/mu-authorization:0.6.0-beta.1
     volumes:
       - ./config/authorization:/config
@@ -38,7 +38,7 @@ services:
   resource:
     image: semtech/mu-cl-resources:1.19.0
     links:
-      - db:database
+      - database
     volumes:
       - ./config/resources:/config
   deltanotifier:
