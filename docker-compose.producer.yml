@@ -19,6 +19,9 @@ services:
       - database
     volumes:
       - ./data/files:/share
+      - ./config/producer:/config
+    environment:
+      PUBLICATION_GRAPH: "http://mu.semte.ch/application"
   file:
     image: semtech/mu-file-service:latest
     links:

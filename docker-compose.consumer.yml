@@ -11,6 +11,8 @@ services:
       - ./config/delta-consumer:/config
   consumer:
     image: redpencil/poc-diff-consumer-service:latest
+    volumes:
+      - ./config/consumer:/config
     links:
       - database
     external_links:
