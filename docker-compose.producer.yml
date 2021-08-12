@@ -22,6 +22,7 @@ services:
       - ./config/producer:/config
     environment:
       PUBLICATION_GRAPH: "http://mu.semte.ch/application"
+      DELTA_INTERVAL_MS: 512
   file:
     image: semtech/mu-file-service:latest
     links:
@@ -30,6 +31,12 @@ services:
       MU_APPLICATION_GRAPH: "http://mu.semte.ch/graphs/public"
     volumes:
       - ./data/files:/share
+  timer:
+    build: ../timer-service
+    links:
+      - database
+    environment:
+      PERIOD: 100
 
 networks:
   producer:

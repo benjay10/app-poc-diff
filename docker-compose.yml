@@ -24,6 +24,7 @@ services:
     environment:
       MU_SPARQL_ENDPOINT: "http://triplestore:8890/sparql"
       DATABASE_COMPATIBILITY: "Virtuoso"
+      DELTA_CACHE_TIMEOUT: 50
     links:
       - triplestore:triplestore
     labels:
