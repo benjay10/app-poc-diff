@@ -33,11 +33,23 @@ services:
       - ./data/files:/share
   timer:
     build: ../timer-service
+  tunnel:
+    image: redpencil/mu-tunnel:latest
+    container_name: tunnel-producer
+    volumes:
+      - ./config/tunnel-producer:/config
     links:
-      - database
+      - producer
+      - file
+    external_links:
+      - tunnel-consumer
+    networks:
+      - tunnel
+      - default
     environment:
-      PERIOD: 100
+      TUNNEL_LOG_INBOUND: "true"
+      TUNNEL_LOG_OUTBOUND: "true"
 
 networks:
-  producer:
-    name: producer
+  tunnel:
+    name: tunnel

@@ -15,18 +15,31 @@ services:
       - ./config/consumer:/config
     links:
       - database
-    external_links:
-      - producer_identifier_1:producer
+      - tunnel
+    # These environment variables are default, but included here for illustration
+    # The poc-diff-consumer-service README contains more information
     environment:
-      SYNC_BASE_URL: "http://producer"
-    networks:
-      - default
-      - producer
+      SYNC_BASE_URL: "http://identifier"
+      TUNNEL_ENDPOINT: "http://tunnel/out"
+      TUNNEL_DEST_IDENTITY: "producer@redpencil.io"
   triplestore:
     volumes:
-      - ./data2/db:/data
+      - ./data/db-consumer:/data
+  tunnel:
+    image: redpencil/mu-tunnel:latest
+    container_name: tunnel-consumer
+    volumes:
+      - ./config/tunnel-consumer:/config
+    external_links:
+      - tunnel-producer
+    networks:
+      - tunnel
+      - default
+    environment:
+      TUNNEL_LOG_INBOUND: "true"
+      TUNNEL_LOG_OUTBOUND: "true"
 
 networks:
-  producer:
+  tunnel:
     external: true
-    name: producer
+    name: tunnel

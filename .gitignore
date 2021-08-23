@@ -9,5 +9,15 @@
 /data/db/virtuoso.pxa
 /data/db/virtuoso.trx
 /data/db/.*
+/data/db-consumer/clean-logs.sh
+/data/db-consumer/*.log
+/data/db-consumer/virtuoso-temp.db
+/data/db-consumer/virtuoso.db
+/data/db-consumer/virtuoso.ini
+/data/db-consumer/virtuoso.lck
+/data/db-consumer/virtuoso.log
+/data/db-consumer/virtuoso.pxa
+/data/db-consumer/virtuoso.trx
+/data/db-consumer/.*
 /data/files/*
 *~
