@@ -8,18 +8,18 @@ Keys are intentionally omitted from the configuration directories. Read the [mu-
 
 ## Starting the application
 
-First, start the consumer using
-```
-docker-compose -f docker-compose.yml -f docker-compose.consumer.yml -p consumer up -d
-```
-
-Then, start the producer using
+First, start the producer using
 ```
 docker-compose -f docker-compose.yml -f docker-compose.producer.yml -p producer up -d
 ```
 Alternatively, the producer may be started including a stress-testing "timer" service. This can be done by including the `docker-compose.timer.yml` file:
 ```
 docker-compose -f docker-compose.yml -f docker-compose.producer.yml -f docker-compose.timer.yml -p producer up -d
+```
+
+Then, start the consumer using
+```
+docker-compose -f docker-compose.yml -f docker-compose.consumer.yml -p consumer up -d
 ```
 
 The producer is accessible at localhost:81 and the consumer at localhost:82.
