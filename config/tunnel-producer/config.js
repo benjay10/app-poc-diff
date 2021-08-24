@@ -9,11 +9,6 @@ module.exports = {
      file: "consumer1.asc",
      allowed: ["http://identifier/sync/files",
                "http://identifier/files/"]
-    },
-    {identity: "consumer2@redpencil.io",
-     file: "consumer2.asc",
-     allowed: ["http://identifier/sync/files",
-               "http://identifier/files/"]
     }
   ]
 };
