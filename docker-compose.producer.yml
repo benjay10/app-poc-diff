@@ -31,8 +31,6 @@ services:
       MU_APPLICATION_GRAPH: "http://mu.semte.ch/graphs/public"
     volumes:
       - ./data/files:/share
-  timer:
-    build: ../timer-service
   tunnel:
     image: redpencil/mu-tunnel:latest
     container_name: tunnel-producer
