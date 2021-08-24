@@ -2,6 +2,10 @@
 
 Project demonstrating a concept for delta sync between different applications
 
+## TODO
+
+This service relies on indexed delta messages, and thus on [this PR](https://github.com/mu-semtech/mu-authorization/pull/6). As a temporary solution, we reference this repository and branch directly and build from it instead of using an image.
+
 ## Configuring
 
 Keys are intentionally omitted from the configuration directories. Read the [mu-tunnel](http://github.com/redpencilio/mu-tunnel) documentation for instructions on creating the necessary keys.

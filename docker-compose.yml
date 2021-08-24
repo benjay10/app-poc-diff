@@ -18,7 +18,9 @@ services:
     volumes:
       - ./config/dispatcher:/config
   database:
-    image: semtech/mu-authorization:latest
+    # TODO: When indexed deltas are merged, change this to an image
+    build:
+      context: git@github.com:ajuvercr/mu-authorization.git#feature/indexed_deltas
     volumes:
       - ./config/authorization:/config
     environment:
