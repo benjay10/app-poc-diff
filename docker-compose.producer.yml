@@ -10,7 +10,7 @@ services:
     volumes:
       - ./config/delta-producer:/config
   producer:
-    image: redpencil/poc-diff-producer-service:latest
+    image: redpencil/poc-diff-producer:latest
     links:
       - database
     volumes:

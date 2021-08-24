@@ -10,7 +10,7 @@ services:
     volumes:
       - ./config/delta-consumer:/config
   consumer:
-    image: redpencil/poc-diff-consumer-service:latest
+    image: redpencil/poc-diff-consumer:latest
     volumes:
       - ./config/consumer:/config
     links:
