@@ -4,7 +4,9 @@ Project demonstrating a concept for delta sync between different applications
 
 ## TODO
 
-This service relies on indexed delta messages, and thus on [this PR](https://github.com/mu-semtech/mu-authorization/pull/6). As a temporary solution, we reference this repository and branch directly and build from it instead of using an image.
+* There are pull requests underway to deal with misordering of delta messages, which needs support in [mu-authorization](https://github.com/mu-semtech/mu-authorization/pull/6), [delta-notifier](https://github.com/mu-semtech/delta-notifier/pull/7) and the [producer](https://github.com/redpencilio/poc-diff-producer-service/pull/1).
+
+* Effective inserts and deletes could be useful and are also underway in mu-auth and the delta-notifier.
 
 ## Configuring
 
