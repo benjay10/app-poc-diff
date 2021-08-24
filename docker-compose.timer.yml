@@ -2,7 +2,7 @@ version: '3.4'
 
 services:
   timer:
-    image: redpencil/poc-diff-timer-service:latest
+    image: redpencil/poc-diff-timer:latest
     links:
       - producer
       - database
