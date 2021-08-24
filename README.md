@@ -22,3 +22,8 @@ The producer is accessible at localhost:81 and the consumer at localhost:82.
 
 The `container_name` key is used in the Compose files, so it is not possible to start multiple producers or consumers currently. However, if the appropriate container names were changed and configured, multiple consumers should work.
 
+## Services
+
+* [mu-tunnel](http://github.com/redpencilio/mu-tunnel)
+* [poc-diff-producer-service](http://github.com/redpencilio/poc-diff-producer-service)
+* [poc-diff-consumer-service](http://github.com/redpencilio/poc-diff-consumer-service)
