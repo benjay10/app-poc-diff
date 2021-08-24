@@ -1,0 +1,14 @@
+version: '3.4'
+
+services:
+  timer:
+    image: redpencil/poc-diff-timer-service:latest
+    links:
+      - producer
+      - database
+    environment:
+      PERIOD: 1000
+      # Enable this to send out-of-order deltas to the producer directly
+      # Disable this to simply send a large amount of triple inserts and deletes
+      # to mu-authorization.
+      #DIRECT_DELTAS: true
