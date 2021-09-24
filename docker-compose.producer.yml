@@ -1,21 +1,22 @@
-version: '3.4'
+version: '3.9'
 
 services:
   frontend:
     ports:
-      - "81:80"
+      - "81:4200"
     environment:
       STATIC_FOLDERS_REGEX: "^/(assets|font|files)/"
   deltanotifier:
     volumes:
-      - ./config/delta-producer:/config
+      - ./config/delta-producer:/config:Z
   producer:
-    image: redpencil/poc-diff-producer:latest
+    image: producerconsumerapp
     links:
       - database
     volumes:
-      - ./data/files:/share
-      - ./config/producer:/config
+      - ./data/files:/share:Z
+      - ./config/producer:/config:Z
+      - ./producer-service/app:/app:Z
     environment:
       PUBLICATION_GRAPH: "http://mu.semte.ch/application"
       DELTA_INTERVAL_MS: 512
@@ -26,12 +27,12 @@ services:
     environment:
       MU_APPLICATION_GRAPH: "http://mu.semte.ch/graphs/public"
     volumes:
-      - ./data/files:/share
+      - ./data/files:/share:Z
   tunnel:
     image: redpencil/mu-tunnel:latest
     container_name: tunnel-producer
     volumes:
-      - ./config/tunnel-producer:/config
+      - ./config/tunnel-producer:/config:Z
     links:
       - producer
       - file
@@ -47,3 +48,4 @@ services:
 networks:
   tunnel:
     name: tunnel
+

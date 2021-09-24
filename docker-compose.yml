@@ -1,10 +1,12 @@
-version: '3.4'
+version: '3.9'
 
 services:
   frontend:
-    image: redpencil/frontend-poc-diff:latest
+    image: frontendapp
     links:
       - identifier:backend
+    volumes:
+      - ./frontend-service/webapp/:/webapp/
   identifier:
     image: semtech/mu-identifier:1.7.0
     links:
@@ -16,11 +18,11 @@ services:
     links:
       - resource:resource
     volumes:
-      - ./config/dispatcher:/config
+      - ./config/dispatcher:/config:Z
   database:
     image: semtech/mu-authorization:0.6.0-beta.7
     volumes:
-      - ./config/authorization:/config
+      - ./config/authorization:/config:Z
     environment:
       MU_SPARQL_ENDPOINT: "http://triplestore:8890/sparql"
       DATABASE_COMPATIBILITY: "Virtuoso"
@@ -35,13 +37,13 @@ services:
       SPARQL_UPDATE: "true"
       DEFAULT_GRAPH: "http://mu.semte.ch/application"
     volumes:
-      - ./data/db:/data
+      - ./data/db:/data:Z
   resource:
     image: semtech/mu-cl-resources:1.19.0
     links:
       - database
     volumes:
-      - ./config/resources:/config
+      - ./config/resources:/config:Z
   deltanotifier:
     image: semtech/mu-delta-notifier:latest
     environment:
@@ -51,3 +53,4 @@ services:
       DEBUG_TRIPLE_MATCHES_SPEC: "true"
     labels:
       - logging
+

@@ -1,0 +1,15 @@
+@import 'tailwind.css';
+
+[data-app-role="producer"]:after {
+  content: '[Producer]';
+  margin-left: 2rem;
+  color: #AAA;
+  font-size: 1.5rem;
+}
+
+[data-app-role="consumer"]:after {
+  content: '[Consumer]';
+  margin-left: 2rem;
+  color: #AAA;
+  font-size: 1.5rem;
+}

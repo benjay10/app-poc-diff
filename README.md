@@ -12,6 +12,12 @@ Project demonstrating a concept for delta sync between different applications
 
 Keys are intentionally omitted from the configuration directories. Read the [mu-tunnel](http://github.com/redpencilio/mu-tunnel) documentation for instructions on creating the necessary keys.
 
+## Prepare the application (Ben)
+
+Run `run.sh` in both the producer- and consumer-sevice to build the Docker containers.
+
+Execute `run-producer.sh` and then `run-consumer.sh`.
+
 ## Starting the application
 
 First, start the producer using

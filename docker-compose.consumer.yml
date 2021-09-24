@@ -1,18 +1,19 @@
-version: '3.4'
+version: '3.9'
 
 services:
   frontend:
     ports:
-      - "82:80"
+      - "82:4200"
     environment:
       STATIC_FOLDERS_REGEX: "^/(assets|font|files)/"
   deltanotifier:
     volumes:
-      - ./config/delta-consumer:/config
+      - ./config/delta-consumer:/config:Z
   consumer:
-    image: redpencil/poc-diff-consumer:latest
+    image: producerconsumerapp
     volumes:
-      - ./config/consumer:/config
+      - ./config/consumer:/config:Z
+      - ./consumer-service/app:/app:Z
     links:
       - database
       - tunnel
@@ -24,12 +25,12 @@ services:
       TUNNEL_DEST_IDENTITY: "producer@redpencil.io"
   triplestore:
     volumes:
-      - ./data/db-consumer:/data
+      - ./data/db-consumer:/data:Z
   tunnel:
     image: redpencil/mu-tunnel:latest
     container_name: tunnel-consumer
     volumes:
-      - ./config/tunnel-consumer:/config
+      - ./config/tunnel-consumer:/config:Z
     external_links:
       - tunnel-producer
     networks:
@@ -43,3 +44,4 @@ networks:
   tunnel:
     external: true
     name: tunnel
+
