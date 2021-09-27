@@ -1,31 +1,43 @@
 version: '3.9'
 
 services:
-  frontend:
-    ports:
-      - "82:4200"
-    environment:
-      STATIC_FOLDERS_REGEX: "^/(assets|font|files)/"
-  deltanotifier:
-    volumes:
-      - ./config/delta-consumer:/config:Z
-  consumer:
-    image: producerconsumerapp
-    volumes:
-      - ./config/consumer:/config:Z
-      - ./consumer-service/app:/app:Z
-    links:
-      - database
-      - tunnel
-    # These environment variables are default, but included here for illustration
-    # The poc-diff-consumer-service README contains more information
-    environment:
-      SYNC_BASE_URL: "http://identifier"
-      TUNNEL_ENDPOINT: "http://tunnel/out"
-      TUNNEL_DEST_IDENTITY: "producer@redpencil.io"
+
   triplestore:
     volumes:
       - ./data/db-consumer:/data:Z
+    ports:
+      - "8892:8890"
+
+  deltanotifier:
+    volumes:
+      - ./config/delta-consumer:/config:Z
+
+  consumer:
+    image: producerconsumerapp
+    links:
+      - database:database
+      - tunnel:tunnel
+    volumes:
+      - ./consumer-service/app:/app:Z
+#      - ./config/consumer:/config:Z
+    # These environment variables are default, but included here for illustration
+    # The poc-diff-consumer-service README contains more information
+    environment:
+      NODE_ENV: "development"
+      SYNC_BASE_URL: "http://identifier"
+      TUNNEL_ENDPOINT: "http://tunnel/out"
+      TUNNEL_DEST_IDENTITY: "producer@redpencil.io"
+
+  frontend:
+    ports:
+      - "4202:4200"
+    environment:
+      STATIC_FOLDERS_REGEX: "^/(assets|font|files)/"
+
+  identifier:
+    ports:
+      - "82:80"
+
   tunnel:
     image: redpencil/mu-tunnel:latest
     container_name: tunnel-consumer

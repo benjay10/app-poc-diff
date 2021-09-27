@@ -1,7 +1,7 @@
 export default [
   {
     match: {
-      // form of element is {subject,predicate,object}
+      // Everything
     },
     callback: {
       url: "http://producer/delta", method: "POST"
@@ -14,8 +14,7 @@ export default [
   },
   {
     match: {
-      // form of element is {subject,predicate,object}
-      // predicate: { type: "uri", value: "http://www.semanticdesktop.org/ontologies/2007/03/22/nmo#isPartOf" }
+      //Everything
     },
     callback: {
       url: "http://resource/.mu/delta", method: "POST"

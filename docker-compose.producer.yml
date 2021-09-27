@@ -24,12 +24,13 @@ services:
   producer:
     image: producerconsumerapp
     links:
-      - database
+      - database:database
     volumes:
-      - ./data/files:/share:Z
-      - ./config/producer:/config:Z
       - ./producer-service/app:/app:Z
+      - ./data/files:/share:Z
+#      - ./config/producer:/config:Z
     environment:
+      NODE_ENV: "development"
       PUBLICATION_GRAPH: "http://mu.semte.ch/application"
       DELTA_INTERVAL_MS: 512
   
@@ -49,8 +50,8 @@ services:
     volumes:
       - ./config/tunnel-producer:/config:Z
     links:
-      - producer
-      - file
+      - producer:producer
+      - file:file
     external_links:
       - tunnel-consumer
     networks:

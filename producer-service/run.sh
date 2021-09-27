@@ -4,6 +4,7 @@ docker run \
 	--name producerAppContainer \
 	-i --tty \
 	--volume `pwd`/app/:/app/ \
-	--publish 81:80 \
+	--volume `pwd`/../data/files:/share \
+	--publish 83:80 \
 	producerconsumerapp:latest
 

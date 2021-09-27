@@ -1,12 +1,12 @@
 {
   "self": {
     "identity": "producer@redpencil.io",
-    "file": "producer.asc",
-    "passphrase": "producer"
+    "file": "producer-priv.asc",
+    "passphrase": "access"
   },
   "peers": [
-    {"identity": "consumer1@redpencil.io",
-     "file": "consumer1.asc",
+    {"identity": "consumer@redpencil.io",
+     "file": "consumer-pub.asc",
      "allowed": ["http://identifier/sync/files",
                  "http://identifier/files/"]
     }
