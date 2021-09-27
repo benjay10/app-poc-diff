@@ -1,11 +1,18 @@
 'use strict';
 
 const EmberApp = require('ember-cli/lib/broccoli/ember-app');
+const EmberAddon = require('ember-cli/lib/broccoli/ember-addon');
 
 module.exports = function(defaults) {
   let app = new EmberApp(defaults, {
     // Add options here
   });
+  //let app = new EmberAddon(defaults, {
+  //  // Add options here
+  //  'ember-fetch': {
+  //    preferNative: true
+  //  }
+  //});
 
   // Use `app.import` to add additional libraries to the generated
   // output files.

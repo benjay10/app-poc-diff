@@ -1,44 +1,37 @@
 defmodule Dispatcher do
-  use Plug.Router
+  use Matcher
 
-  def start(_argv) do
-    port = 80
-    IO.puts "Starting Plug with Cowboy on port #{port}"
-    Plug.Adapters.Cowboy.http __MODULE__, [], port: port
-    :timer.sleep(:infinity)
+  define_accept_types [
+    html: [ "text/html", "application/xhtml+html" ],
+    json: [ "application/json", "application/vnd.api+json" ],
+    any:  ["*/*"]
+  ]
+
+  @html %{ accept: %{ html: true } }
+  @json %{ accept: %{ json: true } }
+  @any  %{ accept: %{ any:  true } }
+
+  ## Resources for the webapp: JavaScript, CSS, images, ...
+  match "/assets/*path", @any do
+    forward conn, path, "http://frontend:4200/assets/"
   end
 
-  plug Plug.Logger
-  plug :match
-  plug :dispatch
-
-  # In order to forward the 'themes' resource to the
-  # resource service, use the following forward rule.
-  #
-  # docker-compose stop; docker-compose rm; docker-compose up
-  # after altering this file.
-  #
-  # match "/themes/*path" do
-  #   Proxy.forward conn, path, "http://resource/themes/"
-  # end
-
-  match "/books/*path" do
-    Proxy.forward conn, path, "http://resource/books/"
-  end
-  match "/authors/*path" do
-    Proxy.forward conn, path, "http://resource/authors/"
+  match "/api/*path", @json do
+    forward conn, path, "http://resource/"
   end
 
   get "/files/:id/download" do
-    Proxy.forward conn, [], "http://file/files/" <> id <> "/download"
+    forward conn, [], "http://file/files/" <> id <> "/download"
   end
 
   get "/sync/files/*path" do
-    Proxy.forward conn, path, "http://producer/files/"
+    forward conn, path, "http://producer/files/"
   end
 
-  match _ do
-    send_resp( conn, 404, "Route not found.  See config/dispatcher.ex" )
+  ## All HTML requests should be responded (as last resort) with the serving of the Ember webapp's HTML page
+  match "/*path", @html do
+    forward conn, path, "http://frontend:4200/"
   end
 
+  #TODO: add a catch all to respond with a 404
 end

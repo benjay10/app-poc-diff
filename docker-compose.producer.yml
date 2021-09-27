@@ -1,14 +1,26 @@
 version: '3.9'
 
 services:
-  frontend:
+
+  triplestore:
+    volumes:
+      - ./data/db:/data:Z
     ports:
-      - "81:4200"
-    environment:
-      STATIC_FOLDERS_REGEX: "^/(assets|font|files)/"
+      - "8891:8890"
+  
   deltanotifier:
     volumes:
       - ./config/delta-producer:/config:Z
+  
+  file:
+    image: semtech/mu-file-service:latest
+    links:
+      - database
+    environment:
+      MU_APPLICATION_GRAPH: "http://mu.semte.ch/graphs/public"
+    volumes:
+      - ./data/files:/share:Z
+
   producer:
     image: producerconsumerapp
     links:
@@ -20,14 +32,17 @@ services:
     environment:
       PUBLICATION_GRAPH: "http://mu.semte.ch/application"
       DELTA_INTERVAL_MS: 512
-  file:
-    image: semtech/mu-file-service:latest
-    links:
-      - database
+  
+  frontend:
+    ports:
+      - "4201:4200"
     environment:
-      MU_APPLICATION_GRAPH: "http://mu.semte.ch/graphs/public"
-    volumes:
-      - ./data/files:/share:Z
+      STATIC_FOLDERS_REGEX: "^/(assets|font|files)/"
+
+  identifier:
+    ports:
+      - "81:80"
+
   tunnel:
     image: redpencil/mu-tunnel:latest
     container_name: tunnel-producer

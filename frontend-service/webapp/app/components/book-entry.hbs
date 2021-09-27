@@ -1,7 +1,7 @@
 <form {{on "submit" (fn this.submit)}} ...attributes>
   <label class="flex">
     <span class="flex-initial">Title:</span>
-    {{input class="w-full flex-auto pl-2" value=@book.title placeholder="Some book title"}}
+    <Input class="w-full flex-auto pl-2" placeholder="Some book title" @type="text" @value={{@book.title}} />
   </label>
 
   {{yield}}
