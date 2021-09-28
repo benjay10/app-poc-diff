@@ -28,7 +28,6 @@ services:
     volumes:
       - ./producer-service/app:/app:Z
       - ./data/files:/share:Z
-#      - ./config/producer:/config:Z
     environment:
       NODE_ENV: "development"
       PUBLICATION_GRAPH: "http://mu.semte.ch/application"
