@@ -20,8 +20,12 @@ defmodule Dispatcher do
     forward conn, path, "http://resource/"
   end
 
-  get "/files/:id/download" do
-    forward conn, [], "http://file/files/" <> id <> "/download"
+  match "/files/*path", @any do
+    forward conn, path, "http://file/files/"
+  end
+
+  get "/syncfiles/:id/download" do
+    forward conn, [], "http://syncfile/files/" <> id <> "/download"
   end
 
   get "/sync/files/*path" do

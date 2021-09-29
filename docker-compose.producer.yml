@@ -12,14 +12,14 @@ services:
     volumes:
       - ./config/delta-producer:/config:Z
   
-  file:
+  syncfile:
     image: semtech/mu-file-service:latest
     links:
       - database
     environment:
       MU_APPLICATION_GRAPH: "http://mu.semte.ch/graphs/public"
     volumes:
-      - ./data/files:/share:Z
+      - ./data/syncfiles:/share:Z
 
   producer:
     image: producerconsumerapp
@@ -27,7 +27,7 @@ services:
       - database:database
     volumes:
       - ./producer-service/app:/app:Z
-      - ./data/files:/share:Z
+      - ./data/syncfiles:/share:Z
     environment:
       NODE_ENV: "development"
       PUBLICATION_GRAPH: "http://mu.semte.ch/application"
@@ -50,7 +50,7 @@ services:
       - ./config/tunnel-producer:/config:Z
     links:
       - producer:producer
-      - file:file
+      - syncfile:syncfile
     external_links:
       - tunnel-consumer
     networks:

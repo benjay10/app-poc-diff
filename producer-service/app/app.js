@@ -8,6 +8,7 @@ app.use( bodyParser.json( { type: function(req) { return /^application\/json/.te
 
 const DELTA_INTERVAL = process.env.DELTA_INTERVAL_MS || 1000;
 const shareFolder = '/share';
+const FILEGRAPH = "http://mu.semte.ch/graphs/sync";
 
 let cache = [];
 let hasTimeout = null;
@@ -26,12 +27,12 @@ app.post('/delta', function( req, res ) {
   res.status(200).send("Processed");
 } );
 
-app.get('/files', async function( req, res ) {
+app.get('/syncfiles', async function( req, res ) {
   const since = req.query.since || new Date().toISOString();
   console.log(`Retrieving delta files since ${since}`);
 
   const result = await query(`
-    PREFIX mu: <http://mu.semte.ch/vocabularies/core/>
+    PREFIX mu:  <http://mu.semte.ch/vocabularies/core/>
     PREFIX nfo: <http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#>
     PREFIX nie: <http://www.semanticdesktop.org/ontologies/2007/01/19/nie#>
     PREFIX dct: <http://purl.org/dc/terms/>
@@ -100,7 +101,7 @@ async function writeFileToStore(filename, filepath) {
     PREFIX dct: <http://purl.org/dc/terms/>
 
     INSERT DATA {
-      GRAPH <http://mu.semte.ch/graphs/public> {
+      GRAPH <${FILEGRAPH}> {
         <${virtualFileUri}> a nfo:FileDataObject ;
           mu:uuid "${virtualFileUuid}" ;
           nfo:fileName "${filename}" ;

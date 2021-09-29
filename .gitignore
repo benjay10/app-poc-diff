@@ -1,7 +1,5 @@
 # Virtuoso files /data/db
-/data/db/**
-/data/db-consumer/**
-/data/files/**
+/data/**
 *~
 taskell.md
 FrequentSPARQLqueries.sparql

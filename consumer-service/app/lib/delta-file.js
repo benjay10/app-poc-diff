@@ -4,17 +4,17 @@ import request from 'request';
 import { sparqlEscapeString, sparqlEscapeUri } from 'mu';
 import { querySudo as query, updateSudo as update } from '@lblod/mu-auth-sudo';
 
-const TUNNEL_ENDPOINT = process.env.TUNNEL_ENDPOINT || 'http://tunnel/out';
-const TUNNEL_DEST_IDENTITY = process.env.TUNNEL_DEST_IDENTITY || 'producer@redpencil.io';
-const SYNC_BASE_URL = process.env.SYNC_BASE_URL || 'http://identifier';
-const SYNC_FILES_ENDPOINT = `${SYNC_BASE_URL}/sync/files`;
-const DOWNLOAD_FILE_ENDPOINT = `${SYNC_BASE_URL}/files/:id/download`;
+const TUNNEL_ENDPOINT        = process.env.TUNNEL_ENDPOINT      || 'http://tunnel/out';
+const TUNNEL_DEST_IDENTITY   = process.env.TUNNEL_DEST_IDENTITY || 'producer@redpencil.io';
+const SYNC_BASE_URL          = process.env.SYNC_BASE_URL        || 'http://identifier';
+const SYNC_FILES_ENDPOINT    = `${SYNC_BASE_URL}/sync/files`;
+const DOWNLOAD_FILE_ENDPOINT = `${SYNC_BASE_URL}/syncfiles/:id/download`;
 
 class DeltaFile {
   constructor(data) {
-    this.id = data.id;
+    this.id      = data.id;
     this.created = data.attributes.created;
-    this.name = data.attributes.name;
+    this.name    = data.attributes.name;
   }
 
   get downloadUrl() {
@@ -32,11 +32,11 @@ class DeltaFile {
     try {
       request({
         method: 'POST',
-        uri: TUNNEL_ENDPOINT,
+        uri:    TUNNEL_ENDPOINT,
         body: {
-          peer: TUNNEL_DEST_IDENTITY,
+          peer:   TUNNEL_DEST_IDENTITY,
           method: "GET",
-          url: this.downloadUrl
+          url:    this.downloadUrl
         },
         json: true})
         .on('error', function(err) {
@@ -75,16 +75,16 @@ async function getUnconsumedFiles(since) {
   try {
     const result = await requestPromise({
       method: 'POST',
-      uri: TUNNEL_ENDPOINT,
+      uri:    TUNNEL_ENDPOINT,
       body: {
-        peer: TUNNEL_DEST_IDENTITY,
+        peer:   TUNNEL_DEST_IDENTITY,
         method: 'GET',
         headers: {
           'Accept': 'application/vnd.api+json'
         },
-        url: `${SYNC_FILES_ENDPOINT}?since=${since.toISOString()}`
+        url:    `${SYNC_FILES_ENDPOINT}?since=${since.toISOString()}`
       },
-      json: true // Automatically parses the JSON string in the response
+      json:   true // Automatically parses the JSON string in the response
     });
     return result.data.map(f => new DeltaFile(f));
   } catch (e) {
@@ -92,7 +92,6 @@ async function getUnconsumedFiles(since) {
     throw e;
   }
 }
-
 
 async function insertTriples(triples) {
   // TODO insert in batches of 1000 or will this be handled by mu-authorization?
@@ -141,9 +140,9 @@ function toStatements(triples) {
       return sparqlEscapeString(value);
   };
   return triples.map(function(t) {
-    const subject = escape(t.subject);
+    const subject   = escape(t.subject);
     const predicate = escape(t.predicate);
-    const object = escape(t.object);
+    const object    = escape(t.object);
     return `${subject} ${predicate} ${object} . `;
   }).join('');
 }
@@ -151,3 +150,4 @@ function toStatements(triples) {
 export {
   getUnconsumedFiles
 }
+

@@ -20,21 +20,29 @@ defmodule Acl.UserGroups.Config do
     # removed_source_quads, new_quads.  The quads may be calculated in
     # many ways.  The useage of a GroupSpec and GraphCleanup are
     # common.
-    [ %GroupSpec{
+    [
+      %GroupSpec{
         name: "public",
-        useage: [:read, :write, :read_for_write],
+        useage: [:read, :write],
         access: %AlwaysAccessible{},
         graphs: [ %GraphSpec{
                     graph: "http://mu.semte.ch/graphs/public",
-                    constraint: %ResourceConstraint{
-                      source_graph: "http://mu.semte.ch/application",
-                      resource_types: [
-                        "http://schema.org/Author",
-                        "http://schema.org/Book"
-                      ],
-                      predicates: %AllPredicates{},
-                      inverse_predicates: %NoPredicates{} } }
+                    constraint: %ResourceFormatConstraint{
+                      resource_prefix: ""
+                    }
+                  }
+#                    constraint: %ResourceConstraint{
+#                      source_graph: "http://mu.semte.ch/application",
+#                      resource_types: [
+#                        "http://schema.org/Author",
+#                        "http://schema.org/Book",
+#                        "http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#FileDataObject"
+#                      ],
+#                      predicates: %AllPredicates{} } }
+#                      #inverse_predicates: %NoPredicates{} } }
                 ] },
+
+      # // CLEANUP
       %GraphCleanup{
         originating_graph: "http://mu.semte.ch/application",
         useage: [:write],
@@ -43,3 +51,4 @@ defmodule Acl.UserGroups.Config do
     ]
   end
 end
+

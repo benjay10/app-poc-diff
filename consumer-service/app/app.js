@@ -9,18 +9,18 @@ const INGEST_INTERVAL = process.env.INGEST_INTERVAL_MS || 5000;
 function triggerIngest() {
   console.log(`Consuming diff files at ${new Date().toISOString()}`);
   requestPromise.post('http://localhost/ingest/');
-  setTimeout( triggerIngest, INGEST_INTERVAL );
+  setTimeout(triggerIngest, INGEST_INTERVAL);
 }
 
 triggerIngest();
 
-app.post('/ingest', async function( req, res, next ) {
+app.post('/ingest', async function(req, res, next) {
   const task = await getNextSyncTask();
   if (task) {
     console.log(`Ingesting new delta files since ${task.since.toISOString()}`);
     try {
       const files = await getUnconsumedFiles(task.since);
-      task.files = files;
+      task.files  = files;
       task.execute();
       return res.status(202).end();
     } catch(e) {

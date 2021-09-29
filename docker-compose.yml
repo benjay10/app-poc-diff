@@ -18,24 +18,37 @@ services:
       DEBUG_TRIPLE_MATCHES_SPEC: "true"
     labels:
       - logging
-  
+
   database:
-    image: semtech/mu-authorization:0.6.0-beta.5
+    image: semtech/mu-authorization:feature-consistency-with-credo
     volumes:
       - ./config/authorization:/config:Z
     environment:
       MU_SPARQL_ENDPOINT: "http://triplestore:8890/sparql"
+      LOG_OUTGOING_SPARQL_QUERIES: "true"
       DATABASE_COMPATIBILITY: "Virtuoso"
       DELTA_CACHE_TIMEOUT: 50
+      INSPECT_ACCESS_RIGHTS_PROCESSING: "true"
+      LOG_INCOMING_SPARQL_QUERIES: "true"
+      LOG_ACCESS_RIGHTS: "true"
     links:
       - triplestore:triplestore
     labels:
       - logging
 
+  file:
+    image: semtech/mu-file-service:latest
+    links:
+      - database:database
+    environment:
+      LOG_LEVEL: "debug"
+    volumes:
+      - ./data/files:/share
+
   resource:
     image: semtech/mu-cl-resources:latest
     links:
-      - database
+      - database:database
     volumes:
       - ./config/resources:/config:Z
 

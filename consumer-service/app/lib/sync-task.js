@@ -3,20 +3,20 @@ import { querySudo as query, updateSudo as update } from '@lblod/mu-auth-sudo';
 import mu, { sparqlEscapeDateTime, uuid } from 'mu';
 
 const TASK_NOT_STARTED_STATUS = 'http://mu.semte.ch/services/poc-diff-consumer-service/sync-task-statuses/not-started';
-const TASK_ONGOING_STATUS = 'http://mu.semte.ch/services/poc-diff-consumer-service/sync-task-statuses/ongoing';
-const TASK_SUCCESS_STATUS = 'http://mu.semte.ch/services/poc-diff-consumer-service/sync-task-statuses/success';
-const TASK_FAILED_STATUS = 'http://mu.semte.ch/services/poc-diff-consumer-service/sync-task-statuses/failed';
+const TASK_ONGOING_STATUS     = 'http://mu.semte.ch/services/poc-diff-consumer-service/sync-task-statuses/ongoing';
+const TASK_SUCCESS_STATUS     = 'http://mu.semte.ch/services/poc-diff-consumer-service/sync-task-statuses/success';
+const TASK_FAILED_STATUS      = 'http://mu.semte.ch/services/poc-diff-consumer-service/sync-task-statuses/failed';
 
 class SyncTask {
   constructor({ uri, since, until, created, status }) {
-    this.uri = uri;
-    this.since = since;
-    this.until = until;
-    this.created = created;
-    this.status = status;
-    this.handledFiles = 0;
+    this.uri           = uri;
+    this.since         = since;
+    this.until         = until;
+    this.created       = created;
+    this.status        = status;
+    this.handledFiles  = 0;
     this.latestDeltaMs = 0;
-    this.files = [];
+    this.files         = [];
   }
 
   get latestDelta() {
@@ -105,7 +105,7 @@ class SyncTask {
 
 async function insertNextSyncTask(since = new Date()) {
   const uuid = mu.uuid();
-  const uri = `http://mu.semte.ch/services/poc-diff-consumer-service/sync-tasks/${uuid}`;
+  const uri  = `http://mu.semte.ch/services/poc-diff-consumer-service/sync-tasks/${uuid}`;
 
   await update(`
     PREFIX mu: <http://mu.semte.ch/vocabularies/core/>
@@ -143,9 +143,9 @@ async function getNextSyncTask() {
   if (result.results.bindings.length) {
     const b = result.results.bindings[0];
     return new SyncTask({
-      uri: b['s'].value,
-      status: TASK_NOT_STARTED_STATUS,
-      since: new Date(Date.parse(b['since'].value)),
+      uri:     b['s'].value,
+      status:  TASK_NOT_STARTED_STATUS,
+      since:   new Date(Date.parse(b['since'].value)),
       created: new Date(Date.parse(b['created'].value))
     });
   } else {
@@ -169,9 +169,9 @@ async function getLatestSyncTask() {
   if (result.results.bindings.length) {
     const b = result.results.bindings[0];
     return new SyncTask({
-      uri: b['s'].value,
-      status: b['status'].value,
-      until: new Date(Date.parse(b['latestDelta'].value)),
+      uri:     b['s'].value,
+      status:  b['status'].value,
+      until:   new Date(Date.parse(b['latestDelta'].value)),
       created: new Date(Date.parse(b['created'].value))
     });
   } else {
@@ -185,3 +185,4 @@ export {
   getLatestSyncTask,
   insertNextSyncTask
 }
+
