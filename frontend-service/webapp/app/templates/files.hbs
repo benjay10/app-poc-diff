@@ -1,22 +1,21 @@
 {{page-title "File upload"}}
 
-<h3 class="mb-4 mt-6">Current files</h3>
+<h2 class="mt-3">Current files</h2>
 
-<ul class="list-reset">
+<ul class="list-group">
   {{#each this.model as |file|}}
-    <li class="text-grey-darkest"><button type="button" class="text-grey font-hairline hover:text-red" {{on "click" (fn this.removeFile file)}}>[X]</button> {{file.name}}</li>
+    <li class="list-group-item">
+      {{!--<button type="button" class="" {{on "click" (fn this.removeFile file)}}>[X]</button>--}}
+      <BsButton @type="danger" @onClick={{action (fn this.removeFile file)}} class="mr-2">X</BsButton>
+      {{file.name}}
+    </li>
   {{/each}}
 </ul>
 
-<h3 class="mb-4 mt-6">Upload new</h3>
-
-{{!--
-<FileEntry class="mt-4 text-grey-darkest" @onSubmit={{fn this.uploadFile}} @file={{this.fileEntry}}>
-</FileEntry>
---}}
+<h2 class="mt-3">Upload new</h2>
 
 <FileUpload @name="file" @accept="*/*" @onFileAdd={{action this.fileAdd}} as | queue |>
-  <a class="rounded border border-grey-dark py-2 px-4 font-semibold text-grey-darker hover:text-red hover:border-red">
+  <a class="btn btn-primary">
     {{#if queue.files.length}}
       Uploading...
     {{else}}
@@ -25,8 +24,6 @@
   </a>
 </FileUpload>
 
-<div class="fixed pin-t pin-r py-2 px-4">
-  <button type="button" {{on "click" (fn this.refresh)}} class="text-grey border border-grey rounded py-2 px-4">Reload</button>
-</div>
+<Refresh @onRefresh={{this.refresh}} />
 
 {{outlet}}

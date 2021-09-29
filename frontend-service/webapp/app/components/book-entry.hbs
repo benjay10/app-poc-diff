@@ -1,8 +1,35 @@
+{{!--
 <form {{on "submit" (fn this.submit)}} ...attributes>
-  <label class="flex">
-    <span class="flex-initial">Title:</span>
-    <Input class="w-full flex-auto pl-2" placeholder="Some book title" @type="text" @value={{@book.title}} />
+  <label>
+    <span>Title:</span>
+    <Input placeholder="Some book title" @type="text" @value={{@book.title}} />
+    <button type="submit" class="" role="submit">Create</button>
   </label>
 
   {{yield}}
 </form>
+--}}
+
+<form {{on "submit" (fn this.submit)}} ...attributes class="mb-5">
+  {{yield}}
+  <div class="input-group">
+    <Input @type="text" @value={{@book.title}} class="form-control" placeholder="Title of book" />
+    <div class="input-group-append">
+      <BsButton @type="primary" type="submit">Create</BsButton>
+    </div>
+  </div>
+</form>
+
+{{!--
+<BsForm @formLayout={{inline}} @model={{@book}} @onSubmit={{action this.submit}} as | form |>
+  {{yield}}
+  <div class="input-group">
+    <form.element @controlType="text" @property="title" as | el |>
+      <el.control placeholder="Title of book" required />
+    </form.element>
+    <div class="input-group-append">
+      <form.submitButton>Create</form.submitButton>
+    </div>
+  </div>
+</BsForm>
+--}}

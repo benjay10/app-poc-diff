@@ -1,23 +1,24 @@
 {{page-title "Books"}}
 
-<h3 class="mb-4 mt-6">Current books</h3>
+<h2 class="mt-3">Current books</h2>
 
-<ul class="list-reset">
+<ul class="list-group">
   {{#each this.model as |book|}}
-    <li class="text-grey-darkest"><button type="button" class="text-grey font-hairline hover:text-red" {{on "click" (fn this.removeBook book)}}>[X]</button> {{book.title}}</li>
+    <li class="list-group-item">
+      {{!--<button type="button" class="" {{on "click" (fn this.removeBook book)}}>[X]</button>--}}
+      <BsButton @type="danger" @onClick={{action (fn this.removeBook book)}} class="mr-2">X</BsButton>
+      {{book.title}}
+    </li>
   {{/each}}
 </ul>
 
-<h3 class="mb-4 mt-6">Add new</h3>
+<h2 class="mt-3">Add new</h2>
 
-<BookEntry class="mt-4 text-grey-darkest" @onSubmit={{fn this.createBook}} @book={{this.bookEntry}}>
-  <div class="block mt-2">
-    <button type="submit" class="rounded border border-grey-dark py-2 px-4 font-semibold text-grey-darker hover:text-red hover:border-red" role="submit">Create</button>
+<BookEntry @onSubmit={{fn this.createBook}} @book={{this.bookEntry}}>
+  <div class="">
   </div>
 </BookEntry>
 
-<div class="fixed pin-t pin-r py-2 px-4">
-  <button type="button" {{on "click" (fn this.refresh)}} class="text-grey border border-grey rounded py-2 px-4">Reload</button>
-</div>
+<Refresh @onRefresh={{this.refresh}} />
 
 {{outlet}}

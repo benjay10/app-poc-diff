@@ -1,9 +1,33 @@
-<div class="container mx-auto">
-  <h1 class="my-8 text-red" data-app-role={{this.role}}>App poc diff</h1>
+{{page-title "Testapp synchronisation"}}
 
-  <p class="my-4">An application showcasing data synchronization</p>
-  <LinkTo @route="books">Books</LinkTo>
-  <LinkTo @route="files">Files</LinkTo>
+{{!-- Here comes the navbar --}}
+<BsNavbar
+  @type="dark"
+  @backgroundColor="danger"
+  @collapsed={{true}}
+  @onCollapse={{action (mut collapsed) true}}
+  @onExpand={{action (mut collapsed) false}} as |navbar|>
+  <div class="navbar-header">
+    {{navbar.toggle}}
+    {{#link-to "index" class="navbar-brand"}}Sync POC{{/link-to}}
+  </div>
+  <navbar.content>
+    <navbar.nav as |nav|>
+      <nav.item>
+        <nav.link-to @route="books">Books</nav.link-to>
+      </nav.item>
+      <nav.item>
+        <nav.link-to @route="files">Files</nav.link-to>
+      </nav.item>
+    </navbar.nav>
+  </navbar.content>
+</BsNavbar>
+
+{{!-- Main body --}}
+<div class="container">
+  <h1 class="mt-3" data-app-role={{this.role}}>App poc diff</h1>
+
+  <p>An application showcasing data synchronization</p>
 
   {{outlet}}
 </div>

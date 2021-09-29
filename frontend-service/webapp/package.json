@@ -21,6 +21,7 @@
     "@ember/optional-features": "^2.0.0",
     "@glimmer/component": "^1.0.4",
     "babel-eslint": "^10.0.3",
+    "bootstrap": "^4.6.0",
     "broccoli-asset-rev": "^3.0.0",
     "ember-auto-import": "^2.2.0",
     "ember-cli-app-version": "^5.0.0",
@@ -30,7 +31,6 @@
     "ember-cli-htmlbars": "^5.7.1",
     "ember-cli-inject-live-reload": "^2.1.0",
     "ember-cli-sri": "^2.1.1",
-    "ember-cli-tailwind": "^0.7.0",
     "ember-cli-template-lint": "^2.0.2",
     "ember-cli-uglify": "^3.0.0",
     "ember-cli-update": "^1.0.0",
@@ -54,6 +54,7 @@
     "node": "6.* || 8.* || >= 10.*"
   },
   "dependencies": {
+    "ember-bootstrap": "^4.9.0",
     "ember-cli": "^3.28.0"
   }
 }
