@@ -1,5 +1,3 @@
-@import 'tailwind.css';
-
 [data-app-role="producer"]:after {
   content: '[Producer]';
   margin-left: 2rem;

@@ -15,7 +15,6 @@ export default class BooksController extends Controller {
   @action
   async removeBook(book) {
     book.deleteRecord();
-    alert("Removing books is broken for now");
     return await book.save();
   }
 
