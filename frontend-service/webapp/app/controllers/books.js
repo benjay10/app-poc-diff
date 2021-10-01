@@ -9,26 +9,34 @@ export default class BooksController extends Controller {
   @tracked bookEntry
 
   initBookEntry() {
+    //console.log("initBookEntry()");
     this.bookEntry = EmberObject.create();
   }
 
   @action
   async removeBook(book) {
+    alert("Removal of books is broken in the backend. Look at the mu-authorization for that.");
     book.deleteRecord();
     return await book.save();
   }
 
   @action
   async createBook(bookData) {
-    const book = this.store.createRecord("book");
-    book.set('title', bookData.title);
+    //console.log("createBook($1)", bookData);
+    //console.log("Create book record");
+    const book = await this.store.createRecord("book");
+    //console.log("Set title");
+    await book.set('title', bookData.title);
+    //console.log("Save book");
     await book.save();
+    //console.log("Init new book entry");
     this.initBookEntry();
-    this.refresh();
+    //this.refresh();
   }
 
   @action
   refresh() {
+    //console.log("refresh()");
     this.send("refreshModel");
   }
 }

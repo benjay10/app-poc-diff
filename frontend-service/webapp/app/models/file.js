@@ -7,5 +7,5 @@ export default class FileModel extends Model {
   @attr("string") extension;
   @attr("date")   created;
 
-  @belongsTo("file") file;
+  @belongsTo("file", { inverse: null }) download;
 }

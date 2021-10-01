@@ -6,7 +6,8 @@
   {{#each this.model as |file|}}
     <li class="list-group-item">
       {{!--<button type="button" class="" {{on "click" (fn this.removeFile file)}}>[X]</button>--}}
-      <BsButton @type="danger" @onClick={{action (fn this.removeFile file)}} class="mr-2">X</BsButton>
+      <BsButton @type="danger" @onClick={{action (fn this.removeFile file)}} class="mr-1">X</BsButton>
+      <a href={{file.downloadLink}} class="btn btn-success mr-2">&darr;</a>
       {{file.name}}
     </li>
   {{/each}}

@@ -4,30 +4,30 @@ import { querySudo as query, updateSudo as update } from '@lblod/mu-auth-sudo';
 import fs from 'fs-extra';
 import bodyParser from 'body-parser';
 
-app.use( bodyParser.json( { type: function(req) { return /^application\/json/.test( req.get('content-type') ); } } ) );
+app.use(bodyParser.json({ type: function(req) { return /^application\/json/.test(req.get('content-type')); } }));
 
 const DELTA_INTERVAL = process.env.DELTA_INTERVAL_MS || 1000;
-const shareFolder = '/share';
-const FILEGRAPH = "http://mu.semte.ch/graphs/sync";
+const shareFolder    = '/share';
+const FILEGRAPH      = "http://mu.semte.ch/graphs/sync";
 
-let cache = [];
+let cache      = [];
 let hasTimeout = null;
 
-app.post('/delta', function( req, res ) {
+app.post('/delta', function(req, res) {
   const body = req.body;
 
   console.log(`Pushing onto cache ${JSON.stringify(body)}`);
 
-  cache.push( ...body );
+  cache.push(...body);
 
-  if( !hasTimeout ){
+  if(!hasTimeout){
     triggerTimeout();
   }
 
   res.status(200).send("Processed");
 } );
 
-app.get('/syncfiles', async function( req, res ) {
+app.get('/syncfiles', async function(req, res) {
   const since = req.query.since || new Date().toISOString();
   console.log(`Retrieving delta files since ${since}`);
 
@@ -63,12 +63,12 @@ app.get('/syncfiles', async function( req, res ) {
   res.json({ data: files });
 } );
 
-function triggerTimeout(){
-  setTimeout( generateDeltaFile, DELTA_INTERVAL );
+function triggerTimeout() {
+  setTimeout(generateDeltaFile, DELTA_INTERVAL);
   hasTimeout = true;
 }
 
-async function generateDeltaFile(){
+async function generateDeltaFile() {
   const cachedArray = cache;
   cache = [];
 
@@ -77,7 +77,7 @@ async function generateDeltaFile(){
   try {
     const filename = `delta-${new Date().toISOString()}.json`;
     const filepath = `/${shareFolder}/${filename}`;
-    await fs.writeFile(filepath, JSON.stringify( cachedArray ));
+    await fs.writeFile(filepath, JSON.stringify(cachedArray));
     console.log("The file was saved on disk!");
     await writeFileToStore(filename, filepath);
     console.log("The file was saved in the store!");
@@ -87,11 +87,11 @@ async function generateDeltaFile(){
 }
 
 async function writeFileToStore(filename, filepath) {
-  const virtualFileUuid = uuid();
-  const virtualFileUri = `http://mu.semte.ch/services/poc-diff-producer-service/files/${virtualFileUuid}`;
-  const nowLiteral = sparqlEscapeDateTime(new Date());
+  const virtualFileUuid  = uuid();
+  const virtualFileUri   = `http://mu.semte.ch/services/poc-diff-producer-service/files/${virtualFileUuid}`;
+  const nowLiteral       = sparqlEscapeDateTime(new Date());
   const physicalFileUuid = uuid();
-  const physicalFileUri = `share://${filename}`;
+  const physicalFileUri  = `share://${filename}`;
 
   await update(`
     PREFIX mu: <http://mu.semte.ch/vocabularies/core/>

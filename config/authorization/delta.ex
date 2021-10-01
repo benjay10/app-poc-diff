@@ -1,7 +1,7 @@
 defmodule Delta.Config do
   def targets do
     [
-#      "http://deltanotifier"
+      "http://deltanotifier"
      ]
   end
 end

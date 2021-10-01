@@ -16,11 +16,11 @@ defmodule Dispatcher do
     forward conn, path, "http://frontend:4200/assets/"
   end
 
-  match "/api/*path", @json do
+  match "/api/resources/*path", @json do
     forward conn, path, "http://resource/"
   end
 
-  match "/files/*path", @any do
+  match "/api/files/*path", @any do
     forward conn, path, "http://file/files/"
   end
 
