@@ -9,9 +9,6 @@ import http from "http";
 mu.app.use(bodyParser.json({ type: function(req) { return /^application\/json/.test(req.get('content-type')); } }));
 
 const DELTA_INTERVAL  = process.env.DELTA_INTERVAL_MS || 1000;
-const SHAREfOLDER     = '/share';
-const FILEGRAPH       = "http://mu.semte.ch/graphs/sync";
-//const SYNCFILESERVICE = "syncfile";
 const HISTORYGRAPH    = "http://mu.semte.ch/graphs/history";
 
 let cache      = [];
@@ -20,7 +17,7 @@ let hasTimeout = null;
 mu.app.post('/delta', function(req, res) {
   const body = req.body;
 
-  console.log(`Pushing onto cache ${JSON.stringify(body)}`);
+  //console.log(`Pushing onto cache ${JSON.stringify(body)}`);
 
   cache.push(...body);
 
@@ -37,42 +34,6 @@ mu.app.get('/deltas', async function(req, res) {
   res.json(deltas);
 });
 
-mu.app.get('/syncfiles', async function(req, res) {
-  const since = req.query.since || new Date().toISOString();
-  console.log(`Retrieving delta files since ${since}`);
-
-  const result = await query(`
-    PREFIX mu:  <http://mu.semte.ch/vocabularies/core/>
-    PREFIX nfo: <http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#>
-    PREFIX nie: <http://www.semanticdesktop.org/ontologies/2007/01/19/nie#>
-    PREFIX dct: <http://purl.org/dc/terms/>
-
-    SELECT ?uuid ?filename ?created WHERE {
-      ?s a nfo:FileDataObject ;
-          mu:uuid ?uuid ;
-          nfo:fileName ?filename ;
-          dct:publisher <http://mu.semte.ch/services/poc-diff-producer-service> ;
-          dct:created ?created .
-      ?file nie:dataSource ?s .
-
-      FILTER (?created > "${since}"^^xsd:dateTime)
-    } ORDER BY ?created
-  `);
-
-  const files = result.results.bindings.map(b => {
-    return {
-      type: 'files',
-      id: b['uuid'].value,
-      attributes: {
-        name: b['filename'].value,
-        created: b['created'].value
-      }
-    };
-  });
-
-  res.json({ data: files });
-});
-
 function triggerTimeout() {
   setTimeout(executeDeltaUpdates, DELTA_INTERVAL);
   hasTimeout = true;
@@ -82,7 +43,7 @@ async function executeDeltaUpdates() {
   const data = cache;
   cache = [];
 
-  console.log("These are the updates:", JSON.stringify(data));
+  //console.log("These are the updates:", JSON.stringify(data));
   
   //Data is array of bundels of triples, keep them in bundles because that ordering is important for now
 
@@ -93,9 +54,9 @@ async function executeDeltaUpdates() {
     const inserts = filteredTriples.inserts;
     const deletes = filteredTriples.deletes;
 
-    console.log("Split the data; inserts:", inserts);
-    console.log("Split the data; updates:", updates);
-    console.log("Split the data; deletes:", deletes);
+    //console.log("Split the data; inserts:", inserts);
+    //console.log("Split the data; updates:", updates);
+    //console.log("Split the data; deletes:", deletes);
 
     executeUpdates(inserts, "insert");
     executeUpdates(updates, "update");
@@ -135,7 +96,7 @@ async function executeUpdates(triples, type) {
       }
     }
   `;
-  console.log("Full query:", queryFull);
+  //console.log("Full query:", queryFull);
   await update(queryFull);
 }
 
@@ -168,115 +129,6 @@ function splitUpdatesApart(bundle) {
   return { inserts: newInserts, updates: updates, deletes: deletes };
 }
 
-//async function generateDeltaFile() {
-//  const cachedArray = cache;
-//  cache = [];
-//
-//  hasTimeout = false;
-//  
-//  //////////////////////////////////////Upload to file service in the project
-//
-//  //Upload file directly to syncfile service
-//
-//  const filename = `delta-${new Date().toISOString()}.json`;
-//  
-//  //Prepare data
-//  let boundary = "-----------------------------11166788396036188132465557338";
-//  let formBody = "";
-//
-//  formBody += `${boundary}\r\n`;
-//  formBody += `Content-Disposition: form-data; name="Content-Type"\r\n\r\n`;
-//  formBody += `application/json\r\n`;
-//  formBody += `${boundary}\r\n`;
-//  formBody += `Content-Disposition: form-data; name="file"; filename="${filename}"\r\n`;
-//  formBody += `Content-Type: application/json\r\n\r\n`;
-//  let payload = Buffer.concat([
-//    Buffer.from(formBody, "utf8"),
-//    Buffer.from(`{ "data": ${JSON.stringify(cachedArray)} }`, "utf8"),
-//    Buffer.from(`\r\n${boundary}\r\n`, "utf8")
-//  ]);
-//
-//  console.log("PAYLOAD: \n", payload.toString());
-//
-//  let options = {
-//    hostname: SYNCFILESERVICE,
-//    port: 80,
-//    method: 'post',
-//    path: "/files",
-//    headers: {
-//      "Content-Type": `multipart/form-data; boundary=${boundary}`,
-//      "Content-Length": Buffer.byteLength(payload),
-//      "X-Rewrite-URL": "http://producer/"
-//    }
-//  };
-//
-//  let responseCallback = (res) => {
-//    res.on("data", (data) => console.log);
-//    res.on("end", () => {
-//      console.log("Successfully posted data to the syncfile service for storage");
-//    });
-//  };
-//
-//  let req = http.request(options, responseCallback);
-//
-//  req.on("error", (err) => {
-//    console.error("Posting the delta file to the syncfile services failed! Error message:", err);
-//  });
-//  req.write(payload);
-//  req.end();
-//  console.log("Will send delta file to the syncfile service", req);
-//
-//  //////////////////////////////////////Upload to file service manually in the project
-//
-//  //try {
-//  //  const filename = `delta-${new Date().toISOString()}.json`;
-//  //  const filepath = `/${SHAREfOLDER}/${filename}`;
-//  //  await fs.writeFile(filepath, JSON.stringify(cachedArray));
-//  //  console.log("The file was saved on disk!");
-//  //  await writeFileToStore(filename, filepath);
-//  //  console.log("The file was saved in the store!");
-//  //} catch (e) {
-//  //  console.log(e);
-//  //}
-//}
-
-//async function writeFileToStore(filename, filepath) {
-//  const virtualFileUuid  = uuid();
-//  const virtualFileUri   = `http://mu.semte.ch/services/poc-diff-producer-service/files/${virtualFileUuid}`;
-//  const nowLiteral       = mu.sparqlEscapeDateTime(new Date());
-//  const physicalFileUuid = uuid();
-//  const physicalFileUri  = `share://${filename}`;
-//
-//  await update(`
-//    PREFIX mu: <http://mu.semte.ch/vocabularies/core/>
-//    PREFIX nfo: <http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#>
-//    PREFIX nie: <http://www.semanticdesktop.org/ontologies/2007/01/19/nie#>
-//    PREFIX dbpedia: <http://dbpedia.org/resource/>
-//    PREFIX dct: <http://purl.org/dc/terms/>
-//
-//    INSERT DATA {
-//      GRAPH <${FILEGRAPH}> {
-//        <${virtualFileUri}> a nfo:FileDataObject ;
-//          mu:uuid "${virtualFileUuid}" ;
-//          nfo:fileName "${filename}" ;
-//          dct:format "application/json" ;
-//          dbpedia:fileExtension "json" ;
-//          dct:created ${nowLiteral} ;
-//          dct:modified ${nowLiteral} ;
-//          dct:publisher <http://mu.semte.ch/services/poc-diff-producer-service> .
-//        <${physicalFileUri}> a nfo:FileDataObject ;
-//          mu:uuid "${physicalFileUuid}" ;
-//          nie:dataSource <${virtualFileUri}> ;
-//          nfo:fileName "${filename}" ;
-//          dct:format "application/json" ;
-//          dbpedia:fileExtension "json" ;
-//          dct:created ${nowLiteral} ;
-//          dct:modified ${nowLiteral} .
-//      }
-//    }
-//  `);
-//}
-
 let _SEQ = undefined;
 
 function getNextSequenceNumber() {
@@ -300,15 +152,15 @@ async function initSequenceNumber() {
       ORDER BY DESC(?seq)
       LIMIT 1
     `);
-    console.log("Result from retreiving the sequence number: ", JSON.stringify(queryResult));
+    //console.log("Result from retreiving the sequence number: ", JSON.stringify(queryResult));
     if (queryResult.results.bindings.length == 0) {
-      console.log("No sequence number used yet, starting from 1");
+      //console.log("No sequence number used yet, starting from 1");
       _SEQ = 1;
     } else {
       _SEQ = parseInt(queryResult.results.bindings[0].seq.value);
     }
   }
-  console.log("Value for _SEQ was set to ", _SEQ);
+  //console.log("Value for _SEQ was set to ", _SEQ);
   return true;
 }
 
