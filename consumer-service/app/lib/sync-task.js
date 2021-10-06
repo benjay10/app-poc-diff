@@ -34,8 +34,7 @@ class SyncTask {
         await this.consumeNext();
       }
     } catch (e) {
-      console.log(`Something went wrong while consuming the files`);
-      console.log(e);
+      console.log(`Something went wrong while consuming the files`, e);
     }
   }
 

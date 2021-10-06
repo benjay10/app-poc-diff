@@ -47,8 +47,6 @@ services:
 
   resource:
     image: semtech/mu-cl-resources:latest
-    ports:
-      - "85:80"
     links:
       - database:database
     volumes:

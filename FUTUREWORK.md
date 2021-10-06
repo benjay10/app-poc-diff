@@ -8,7 +8,7 @@ Problems:
 
 *   A timestamp is not a good way of keeping state consistent. Use vector clocks, Lamport clocks, ... instead.
 *   Storing files is slow and quickly becomes a mess.
-*   Periodically requesting data is bad practice (im my opinion). Rely instead on socket connections
+*   Periodically requesting data is bad practice (in my opinion). Rely instead on socket connections
 *   ... more?
 
 ## Storing of triples
@@ -19,6 +19,7 @@ Instead of storing triples in files, we should consider storing them in a more s
 
 can be represented by:
 
+	de:change1 rdf:type     de:History .
     de:change1 de:aboutURI  sh:book1 .
     de:change1 de:aboutProp sch:title .
     de:change1 de:oldValue  "" .

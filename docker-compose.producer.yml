@@ -15,7 +15,9 @@ services:
   syncfile:
     image: semtech/mu-file-service:latest
     links:
-      - database
+      - database:database
+    environment:
+      LOG_LEVEL: "debug"
     environment:
       MU_APPLICATION_GRAPH: "http://mu.semte.ch/graphs/public"
     volumes:
@@ -23,11 +25,14 @@ services:
 
   producer:
     image: producerconsumerapp
+    ports:
+      - "91:80"
     links:
       - database:database
+      - syncfile:syncfile
     volumes:
       - ./producer-service/app:/app:Z
-      - ./data/syncfiles:/share:Z
+        #      - ./data/syncfiles:/share:Z
     environment:
       NODE_ENV: "development"
       PUBLICATION_GRAPH: "http://mu.semte.ch/application"

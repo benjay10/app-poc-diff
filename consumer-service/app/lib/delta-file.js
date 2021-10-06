@@ -57,8 +57,21 @@ class DeltaFile {
     try {
       const changeSets = await fs.readJson(this.tmpFilepath, { encoding: 'utf-8' });
       for (let { inserts, deletes } of changeSets) {
-        await insertTriples(inserts);
-        await deleteTriples(deletes);
+        //Filter out triples about files
+        let insertsFiltered = filterFileTriples(inserts);
+        let insertsNoFiles  = insertsFiltered.triplesNoFiles;
+        let insertsFiles    = insertsFiltered.triplesFiles;
+        let deletesFiltered = filterFileTriples(deletes);
+        let deletesNoFiles  = deletesFiltered.triplesNoFiles;
+        let deletesFiles    = deletesFiltered.triplesFiles;
+
+        //Deal with files
+        await insertFiles(insertsFiles);
+        await deleteFiles(deletesFiles);
+
+        //Deal with the triples (in this order!)
+        await insertTriples(insertsNoFiles);
+        await deleteTriples(deletesNoFiles);
       }
       console.log(`Successfully finished ingesting file ${this.id} stored at ${this.tmpFilepath}`);
       await onFinish(this, true);
@@ -91,6 +104,36 @@ async function getUnconsumedFiles(since) {
     console.log(`Unable to retrieve unconsumed files from ${SYNC_FILES_ENDPOINT}`);
     throw e;
   }
+}
+
+async function filterFileTriples(triples) {
+  //Find all the URI's for files (assume triples in random order)
+  const fileUris = triples.filter((triple) =>
+    triple.subject.type  == "uri" &&
+    triple.subject.value == "http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#FileDataObject"
+  ).map((triple) => triple.subject.value);
+
+  //Find all triples related to the file objects and the others
+  const partedArray = partition(triples, (triple) => fileUris.include(triple.subject.value));
+  return { triplesFiles: partedArray.passes, triplesNoFiles: partedArray.fails };
+}
+
+function partition(array, pred) {
+  //Split an array into 2 new arrays, where the first contains the elements that pass the predicate and the second that does not pass the predicate.
+  //Returns the form { passes: [...], fails: [...] }
+  let passArray = [], failsArray = [];
+  array.forEach((item) => (pred(item) ? passArray : failsArray).push(item));
+  return { passes: passArray, fails: failsArray };
+}
+
+async function insertFiles(triples) {
+  //TODO implement
+  console.log("Found some files to be imported", triples);
+}
+
+async function deleteFiles(triples) {
+  //TODO implement
+  console.log("Found some files to be deleted", triples);
 }
 
 async function insertTriples(triples) {
