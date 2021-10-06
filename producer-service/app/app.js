@@ -29,9 +29,19 @@ mu.app.post('/delta', function(req, res) {
 });
 
 mu.app.get('/deltas', async function(req, res) {
-  const sequence = req.query.sequence;
-  let deltas = await getDeltasSince(sequence);
-  res.json(deltas);
+  const sequence = Number(req.query.sequence);
+  console.log("Sequence number: ", sequence);
+  if (sequence === undefined || (! Number.isInteger(sequence))) {
+    res.status(400).send("No sequence number given, or sequence number not a valid integer. To get deltas from the start, use sequence number 0 explicitely. BEWARE: this could produce a very large response!");
+    return;
+  }
+  try {
+    let deltas = await getDeltasSince(sequence);
+    res.json(deltas);
+  } catch (err) {
+    console.error("Error during delta retreival.", err);
+    res.status(500).send("Internal server error. Message is: ", err);
+  }
 });
 
 function triggerTimeout() {
@@ -67,9 +77,19 @@ async function executeDeltaUpdates() {
 
 async function executeUpdates(triples, type) {
   if (triples.length == 0) return;
-  let needsOldValue = (type === "update" || type === "delete");
-  let needsNewValue = (type === "update" || type === "insert");
+  switch (type) {
+    case "update":
+      needsOldValue = true;  needsNewValue = true;  break;
+    case "insert":
+      needsOldValue = false; needsNewValue = true;  break;
+    case "delete":
+      needsOldValue = true;  needsNewValue = false; break;
+    default:
+      needsOldValue = true;  needsNewValue = true;  break;
+  }
+      
   await initSequenceNumber();
+
   let queryBodies = triples.map((triple) => {
     let seq = getNextSequenceNumber();
     let queryBody = `
