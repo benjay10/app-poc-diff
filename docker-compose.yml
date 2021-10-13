@@ -10,7 +10,8 @@ services:
       - DEFAULT_GRAPH=http://mu.semte.ch/application
 
   deltanotifier:
-    image: semtech/mu-delta-notifier:latest
+    image: deltanotifierincludes
+    #    image: semtech/mu-delta-notifier:latest
     environment:
       LOG_REQUESTS: "true"
       DEBUG_DELTA_SEND: "true"

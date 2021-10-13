@@ -1,14 +1,19 @@
 {
   "self": {
-    "identity": "producer@redpencil.io",
-    "file": "producer-priv.asc",
+    "identity":   "producer@redpencil.io",
+    "file":       "producer-priv.asc",
     "passphrase": "access"
   },
   "peers": [
-    {"identity": "consumer@redpencil.io",
-     "file": "consumer-pub.asc",
-     "allowed": ["http://identifier/sync/files",
-                 "http://identifier/files/"]
+    {
+      "identity": "consumer@redpencil.io",
+      "file":     "consumer-pub.asc",
+      "address":  "http://tunnel-consumer/secure",
+      "allowed":  [
+        "http://identifier/deltas",
+        "http://identifier/files",
+        "http://producer/deltas"
+      ]
     }
   ]
 }

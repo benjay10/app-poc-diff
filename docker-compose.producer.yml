@@ -34,9 +34,22 @@ services:
       - ./producer-service/app:/app:Z
         #      - ./data/syncfiles:/share:Z
     environment:
+      LOG_SPARQL_ALL: false
       NODE_ENV: "development"
       PUBLICATION_GRAPH: "http://mu.semte.ch/application"
       DELTA_INTERVAL_MS: 512
+
+  producertest:
+    image: producertestservice
+    ports:
+      - "85:80"
+    links:
+      - database:database
+      - tunnel:tunnel
+    volumes:
+      - ./producer-test-service/app:/app:Z
+    environment:
+      NODE_ENV: "development"
   
   frontend:
     ports:

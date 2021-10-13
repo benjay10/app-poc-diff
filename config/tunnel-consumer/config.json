@@ -1,12 +1,17 @@
 {
   "self": {
-    "identity": "consumer@redpencil.io",
-    "file": "consumer-priv.asc",
+    "identity":   "consumer@redpencil.io",
+    "file":       "consumer-priv.asc",
     "passphrase": "access"
   },
   "peers": [
-    { "identity": "producer@redpencil.io",
-      "file": "producer-pub.asc",
-      "address": "http://tunnel-producer/secure" }
+    {
+      "identity": "producer@redpencil.io",
+      "file":     "producer-pub.asc",
+      "address":  "http://tunnel-producer/secure",
+      "allowed":  [
+        "http://consumertest"
+      ]
+	  }
   ]
 }

@@ -1,10 +1,9 @@
 // see https://github.com/mu-semtech/mu-javascript-template for more info
-//import { app, errorHandler, uuid, sparqlEscapeDateTime } from 'mu';
 import mu from "mu";
 import { querySudo as query, updateSudo as update } from '@lblod/mu-auth-sudo';
-import fs from 'fs-extra';
 import bodyParser from 'body-parser';
-import http from "http";
+import * as seq from './sequence.js';
+import * as tc  from './tripleconversions.js';
 
 mu.app.use(bodyParser.json({ type: function(req) { return /^application\/json/.test(req.get('content-type')); } }));
 
@@ -12,71 +11,101 @@ const DELTA_INTERVAL  = process.env.DELTA_INTERVAL_MS || 1000;
 const HISTORYGRAPH    = "http://mu.semte.ch/graphs/history";
 
 let cache      = [];
-let hasTimeout = null;
+let hasTimeout = false;
 
-mu.app.post('/delta', function(req, res) {
+//This is used when the deltanotifier posts a number of deltas
+mu.app.post('/delta', async function(req, res) {
+  //Body of the request is JSON in the format [ { inserts: [ { value, type } ], deletes: [] } ]
   const body = req.body;
 
+  //Caching the data first is really only necessary when writing to a file, where you could write multiple bundles to the same file. With history, you always need to process the bundels one after the other.
   //console.log(`Pushing onto cache ${JSON.stringify(body)}`);
+  //cache.push(...body);
+  ////Set the trigger to go off later
+  //if (!hasTimeout) {
+  //  triggerTimeout();
+  //}
+  //console.log("Timeout triggered, now returning HTTP code 200");
 
-  cache.push(...body);
-
-  if(!hasTimeout) {
-    triggerTimeout();
-  }
+  console.log(`Processing: ${JSON.stringify(body)}`);
+  await executeDeltaUpdates(body);
 
   res.status(200).send("Processed");
 });
 
+//This is used when the consumer asks for deltas since a sequence number
 mu.app.get('/deltas', async function(req, res) {
+  //Get the sequence number from the request and convert. Needed to retrieve deltas since that number.
   const sequence = Number(req.query.sequence);
   console.log("Sequence number: ", sequence);
+
+  //In case the number is missing, critical error
   if (sequence === undefined || (! Number.isInteger(sequence))) {
     res.status(400).send("No sequence number given, or sequence number not a valid integer. To get deltas from the start, use sequence number 0 explicitely. BEWARE: this could produce a very large response!");
     return;
   }
+
+  //Get deltas from the store and send onwards, not much further processing required.
+  //Deltas of the form: { updates: [ { subject, predicate, object }, ... ] }
+  //Deltas are ORDERED by their sequence number, important!
   try {
     let deltas = await getDeltasSince(sequence);
     res.json(deltas);
   } catch (err) {
     console.error("Error during delta retreival.", err);
-    res.status(500).send("Internal server error. Message is: ", err);
+    res.status(500).send("Internal server error. Message is: " + err.toString());
   }
 });
 
-function triggerTimeout() {
-  setTimeout(executeDeltaUpdates, DELTA_INTERVAL);
-  hasTimeout = true;
-}
+//function triggerTimeout() {
+//  setTimeout(function () {
+//    hasTimeout = false;
+//    const data = cache;
+//    cache = [];
+//    executeDeltaUpdates(data);
+//  }, DELTA_INTERVAL);
+//}
 
-async function executeDeltaUpdates() {
-  const data = cache;
-  cache = [];
+function executeDeltaUpdates(bundles) {
 
   //console.log("These are the updates:", JSON.stringify(data));
+  console.log("Inserting deltas as history in the database");
   
-  //Data is array of bundels of triples, keep them in bundles because that ordering is important for now
+  let storeP = Promise.resolve(true);
+  
+  try {
+    for (let bundle of bundles) {
+      //Find updates, rather than only deletes and inserts
+      const filteredTriples = splitUpdatesApart(bundle);
+      const updates = filteredTriples.updates;
+      const inserts = filteredTriples.inserts;
+      const deletes = filteredTriples.deletes;
 
-  data.map((bundle) => {
-    //Find updates, rather than only deletes and inserts
-    const filteredTriples = splitUpdatesApart(bundle);
-    const updates = filteredTriples.updates;
-    const inserts = filteredTriples.inserts;
-    const deletes = filteredTriples.deletes;
+      //console.log(`Found ${updates.length} updates.`);
+      //console.log("Split the data; inserts:", inserts);
+      //console.log("Split the data; updates:", updates);
+      //console.log("Split the data; deletes:", deletes);
 
-    //console.log("Split the data; inserts:", inserts);
-    //console.log("Split the data; updates:", updates);
-    //console.log("Split the data; deletes:", deletes);
+      //Write history triples to the store
+      storeP = storeP.then(() => storeUpdates(inserts, "insert"))
+                     .then(() => storeUpdates(updates, "update"))
+                     .then(() => storeUpdates(deletes, "delete"));
+    }
+  }
+  catch (err) {
+    console.error(err);
+  }
 
-    executeUpdates(inserts, "insert");
-    executeUpdates(updates, "update");
-    executeUpdates(deletes, "delete");
-    hasTimeout = false;
-  });
+  console.log("Done inserting deltas as history");
+
+  return storeP;
 }
 
-async function executeUpdates(triples, type) {
+async function storeUpdates(triples, type) {
+  //Premature stop when no triples
   if (triples.length == 0) return;
+
+  let needsOldValue, needsNewValue;
   switch (type) {
     case "update":
       needsOldValue = true;  needsNewValue = true;  break;
@@ -87,24 +116,24 @@ async function executeUpdates(triples, type) {
     default:
       needsOldValue = true;  needsNewValue = true;  break;
   }
-      
-  await initSequenceNumber();
 
-  let queryBodies = triples.map((triple) => {
-    let seq = getNextSequenceNumber();
+  let queryBodies = [];
+  //Loop over the triples and create the proper statments per triple
+  //Using a for...of... loop because of the promise from seq instead of a nicer looking map.
+  for (let triple of triples) {
+    let sequence = await seq.getNextAndSet();
     let queryBody = `
-          de:change${seq}
+          de:change${sequence}
             a            de:History ;
-            de:aboutURI  ${mu.sparqlEscapeUri(triple.subject.value)} ;
-            de:aboutProp ${mu.sparqlEscapeUri(triple.predicate.value)} ;
-            de:oldValue  ${needsOldValue ? sparqlEscapeGen(triple.object) : "de:nil"} ;
-            de:newValue  ${needsNewValue ? sparqlEscapeGen(triple.object) : "de:nil"} ;
-            de:sequence  ${mu.sparqlEscapeInt(seq)} ;
+            de:aboutURI  ${tc.escapeRDFTerm(triple.subject)} ;
+            de:aboutProp ${tc.escapeRDFTerm(triple.predicate)} ;
+            de:oldValue  ${needsOldValue ? tc.escapeRDFTerm(triple.object) : "de:nil"} ;
+            de:newValue  ${needsNewValue ? tc.escapeRDFTerm(triple.object) : "de:nil"} ;
+            de:sequence  ${mu.sparqlEscapeInt(sequence)} ;
             de:timeStamp ${mu.sparqlEscapeDateTime(new Date())} .
     `;
-    //console.log("Query to execute: ", queryBody);
-    return queryBody;
-  });
+    queryBodies.push(queryBody);
+  }
 
   let queryFull = `
     PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
@@ -117,16 +146,20 @@ async function executeUpdates(triples, type) {
     }
   `;
   //console.log("Full query:", queryFull);
-  await update(queryFull);
+  //console.log("Will execute the last printed full query");
+  return update(queryFull);
 }
 
 function splitUpdatesApart(bundle) {
+  //This takes a bundle of inserst and deletes and detect naively for matches between the two. These are updates rather than pure inserts of deletes. (E.g. renaming the name of a book)
+
+  //Define equality for triple
   let tripleEquals = (t1, t2) => t1.subject.value === t2.subject.value && t1.predicate.value === t2.predicate.value;
 
   let inserts = bundle.inserts;
   let deletes = bundle.deletes;
 
-  let updates = [];
+  let updates    = [];
   let newInserts = [];
 
   let foundOne = false;
@@ -147,73 +180,6 @@ function splitUpdatesApart(bundle) {
   }
 
   return { inserts: newInserts, updates: updates, deletes: deletes };
-}
-
-let _SEQ = undefined;
-
-function getNextSequenceNumber() {
-  if (! (_SEQ === undefined || _SEQ === false)) {
-    return ++_SEQ;
-  } else {
-    throw "Using the sequenceNumber whithout proper initSequenceNumber.";
-  }
-}
-
-async function initSequenceNumber() {
-  if (!_SEQ) {
-    let queryResult = await query(`
-      PREFIX de: <http://mu.semte.ch/vocabularies/delta/>
-
-      SELECT ?seq {
-        GRAPH ${mu.sparqlEscapeUri(HISTORYGRAPH)} {
-          ?s de:sequence ?seq .
-        }
-      }
-      ORDER BY DESC(?seq)
-      LIMIT 1
-    `);
-    //console.log("Result from retreiving the sequence number: ", JSON.stringify(queryResult));
-    if (queryResult.results.bindings.length == 0) {
-      //console.log("No sequence number used yet, starting from 1");
-      _SEQ = 1;
-    } else {
-      _SEQ = parseInt(queryResult.results.bindings[0].seq.value);
-    }
-  }
-  //console.log("Value for _SEQ was set to ", _SEQ);
-  return true;
-}
-
-async function getCurrentSequenceNumber() {
-  return _SEQ || getNextSequenceNumber();
-}
-
-function sparqlEscapeGen(triplePart) {
-  if (triplePart.type == "uri") {
-    return mu.sparqlEscapeUri(triplePart.value);
-  } else {
-    let num = Number(triplePart.value);
-    if (!Number.isNaN(num)) {
-      if (Number.isInteger(num)) {
-        return sparqlEscapeInt(triplePart.value)
-      } else {
-        return sparqlEscapeFloat(triplePart.value);
-      }
-    } else {
-      //Try boolean //TODO
-      //Try Date
-      try {
-        let date = (new Date(triplePart.value)).toISOString();
-        if ((new Date(triplePart.value)).toISOString() == triplePart.value) {
-          return sparqlEscapeDateTime(triplePart.value);
-        }
-      }
-      finally {
-        //Default as string
-        return mu.sparqlEscapeString(triplePart.value);
-      }
-    }
-  }
 }
 
 async function getDeltasSince(sequence) {
