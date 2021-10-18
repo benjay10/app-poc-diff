@@ -33,8 +33,13 @@ const LOCAL_STORAGE_PATH = "/share/";
 ///////////////////////////////////////////////////////////////////////////////
 
 app.get('/ingest', async function(req, res, next) {
-  let result = await ingestDeltas();
-  res.status(200).json({ "result": result });
+  try {
+    let result = await ingestDeltas();
+    res.status(200).json({ "result": result });
+  }
+  catch (err) {
+    res.status(500).json({ "error": JSON.stringify(err) });
+  }
 });
 
 async function triggerIngest() {
@@ -298,16 +303,15 @@ async function downloadAndSaveFile(uuid, ext) {
     let req = http.request(options);
 
     req.on("response", (res) => {
-      try {
       console.log("Inside the callback of the request.");
       //Open FileHandle and create WriteStream to it
       //FOR NODE 16 and up:
         //let writeFileHandle = await fs.open(`${uuid}.${ext}`, "wx");
         //let writeStream     = await writeFileHandle.createWriteStream();
       //FOR NODE 14:
-      //let writeStream = fs.createWriteStream(`${LOCAL_STORAGE_PATH}/${uuid}.${ext}`, { flags: "wx" });
+      let writeStream = fs.createWriteStream(`${LOCAL_STORAGE_PATH}/${uuid}.${ext}`, { flags: "wx" });
       //You would want to use flags wx to prevent file from being overwritten
-      let writeStream = fs.createWriteStream(`${LOCAL_STORAGE_PATH}/${uuid}.${ext}`, { flags: "w" });
+      //let writeStream = fs.createWriteStream(`${LOCAL_STORAGE_PATH}/${uuid}.${ext}`, { flags: "w" });
       console.log("Opened writeStream");
       //Close the file properly
       //FOR NODE 16 and up:
@@ -316,6 +320,10 @@ async function downloadAndSaveFile(uuid, ext) {
       writeStream.on("finish", () => {
         console.log("Closing the writeStream");
         writeStream.close();
+      });
+      writeStream.on("error", (err) => {
+        console.error("Error on the writeStream", err);
+        reject(err);
       });
       console.log("Placed a listener on finish");
       //On request finishing, pipe data directly to a file
@@ -328,7 +336,7 @@ async function downloadAndSaveFile(uuid, ext) {
       //
 
       res.on("error", (err) => {
-        console.error(err);
+        console.error("Error on the response for file download", err);
         console.log("Closing the writeStream");
         writeStream.close();
         reject(err);
@@ -340,11 +348,6 @@ async function downloadAndSaveFile(uuid, ext) {
         writeStream.close();
         resolve();
       });
-      }
-      catch (err) {
-        console.log("Er is een probleem");
-        reject(err);
-      }
     });
     
 
