@@ -7,11 +7,19 @@ import * as tc  from './tripleconversions.js';
 
 mu.app.use(bodyParser.json({ type: function(req) { return /^application\/json/.test(req.get('content-type')); } }));
 
+///////////////////////////////////////////////////////////////////////////////
+// Constants and public variables
+///////////////////////////////////////////////////////////////////////////////
+
 const DELTA_INTERVAL  = process.env.DELTA_INTERVAL_MS || 1000;
 const HISTORYGRAPH    = "http://mu.semte.ch/graphs/history";
 
 let cache      = [];
 let hasTimeout = false;
+
+///////////////////////////////////////////////////////////////////////////////
+// Controller functions
+///////////////////////////////////////////////////////////////////////////////
 
 //This is used when the deltanotifier posts a number of deltas
 mu.app.post('/delta', async function(req, res) {
@@ -56,6 +64,10 @@ mu.app.get('/deltas', async function(req, res) {
     res.status(500).send("Internal server error. Message is: " + err.toString());
   }
 });
+
+///////////////////////////////////////////////////////////////////////////////
+// Processing functions
+///////////////////////////////////////////////////////////////////////////////
 
 //function triggerTimeout() {
 //  setTimeout(function () {
@@ -150,6 +162,38 @@ async function storeUpdates(triples, type) {
   return update(queryFull);
 }
 
+async function getDeltasSince(sequence) {
+  let queryBody = `
+    PREFIX de: <http://mu.semte.ch/vocabularies/delta/>
+    SELECT ?s ?p ?o {
+      GRAPH ${mu.sparqlEscapeUri(HISTORYGRAPH)} {
+        ?s a de:History;
+           ?p ?o ;
+           de:sequence ?seq .
+        FILTER (?seq >= ${sequence}) .
+      }
+    }
+    ORDER BY ?seq
+  `;
+
+  let results = await query(queryBody);
+  
+  let restructuredResults = { updates: results.results.bindings.map((binding) => {
+    return {
+      subject:   binding.s,
+      predicate: binding.p,
+      object:    binding.o
+    };
+  })};
+
+  //console.log("The deltas since:", JSON.stringify(restructuredResults));
+  return restructuredResults;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Helper functions
+///////////////////////////////////////////////////////////////////////////////
+
 function splitUpdatesApart(bundle) {
   //This takes a bundle of inserst and deletes and detect naively for matches between the two. These are updates rather than pure inserts of deletes. (E.g. renaming the name of a book)
 
@@ -180,33 +224,5 @@ function splitUpdatesApart(bundle) {
   }
 
   return { inserts: newInserts, updates: updates, deletes: deletes };
-}
-
-async function getDeltasSince(sequence) {
-  let queryBody = `
-    PREFIX de: <http://mu.semte.ch/vocabularies/delta/>
-    SELECT ?s ?p ?o {
-      GRAPH ${mu.sparqlEscapeUri(HISTORYGRAPH)} {
-        ?s a de:History;
-           ?p ?o ;
-           de:sequence ?seq .
-        FILTER (?seq >= ${sequence}) .
-      }
-    }
-    ORDER BY ?seq
-  `;
-
-  let results = await query(queryBody);
-  
-  let restructuredResults = { updates: results.results.bindings.map((binding) => {
-    return {
-      subject:   binding.s,
-      predicate: binding.p,
-      object:    binding.o
-    };
-  })};
-
-  //console.log("The deltas since:", JSON.stringify(restructuredResults));
-  return restructuredResults;
 }
 

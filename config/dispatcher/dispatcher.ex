@@ -24,13 +24,13 @@ defmodule Dispatcher do
     forward conn, path, "http://file/files/"
   end
 
-  get "/syncfiles/:id/download" do
-    forward conn, [], "http://syncfile/files/" <> id <> "/download"
-  end
+  #get "/syncfiles/:id/download" do
+  #  forward conn, [], "http://syncfile/files/" <> id <> "/download"
+  #end
 
-  get "/sync/files/*path" do
-    forward conn, path, "http://producer/files/"
-  end
+  #get "/sync/files/*path" do
+  #  forward conn, path, "http://producer/files/"
+  #end
 
   ## All HTML requests should be responded (as last resort) with the serving of the Ember webapp's HTML page
   match "/*path", @html do

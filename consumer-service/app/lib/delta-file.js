@@ -114,7 +114,7 @@ async function filterFileTriples(triples) {
   ).map((triple) => triple.subject.value);
 
   //Find all triples related to the file objects and the others
-  const partedArray = partition(triples, (triple) => fileUris.include(triple.subject.value));
+  const partedArray = partition(triples, (triple) => fileUris.includes(triple.subject.value));
   return { triplesFiles: partedArray.passes, triplesNoFiles: partedArray.fails };
 }
 

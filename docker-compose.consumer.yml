@@ -21,6 +21,7 @@ services:
       - "92:80"
     volumes:
       - ./consumer-service/app:/app:Z
+      - ./data/files-consumer:/share:Z
     # These environment variables are default, but included here for illustration
     # The poc-diff-consumer-service README contains more information
     environment:

@@ -16,7 +16,7 @@ services:
       LOG_REQUESTS: "true"
       DEBUG_DELTA_SEND: "true"
       DEBUG_DELTA_MATCH: "true"
-      DEBUG_TRIPLE_MATCHES_SPEC: "true"
+      #DEBUG_TRIPLE_MATCHES_SPEC: "true"
     labels:
       - logging
 

@@ -11,8 +11,8 @@
       "address":  "http://tunnel-consumer/secure",
       "allowed":  [
         "http://identifier/deltas",
-        "http://identifier/files",
-        "http://producer/deltas"
+        "http://producer/deltas",
+        "http://identifier/api/files"
       ]
     }
   ]
