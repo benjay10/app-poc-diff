@@ -322,8 +322,12 @@ async function downloadAndSaveFile(uuid, ext) {
         writeStream.close();
       });
       writeStream.on("error", (err) => {
-        console.error("Error on the writeStream", err);
-        reject(err);
+        if (err.errno == -17) {
+          console.log("File already exists on local storage, ignoring");
+          resolve();
+        } else {
+          reject(err);
+        }
       });
       console.log("Placed a listener on finish");
       //On request finishing, pipe data directly to a file
