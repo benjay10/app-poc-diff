@@ -4,6 +4,7 @@ import { querySudo as query, updateSudo as update } from '@lblod/mu-auth-sudo';
 import bodyParser from 'body-parser';
 import * as seq from './sequence.js';
 import * as tc  from './tripleconversions.js';
+import express from 'express';
 
 mu.app.use(bodyParser.json({ type: function(req) { return /^application\/json/.test(req.get('content-type')); } }));
 

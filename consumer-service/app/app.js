@@ -38,6 +38,7 @@ app.get('/ingest', async function(req, res, next) {
     res.status(200).json({ "result": result });
   }
   catch (err) {
+    console.trace(err);
     res.status(500).json({ "error": JSON.stringify(err) });
   }
 });
@@ -68,14 +69,14 @@ async function ingestDeltas() {
   if (historyDeltas.updates && historyDeltas.updates.length < 1) return { result: "Nothing to do" };
   
   //Save history in own store
-  //await storeHistoryFromDeltas(historyDeltas);
+  await storeHistoryFromDeltas(historyDeltas);
   
   //TODO update task status
   
   //Transform history into regular deltas (i.e. { deltas: [ { inserts: [], deletes: [] },  {...} ] })
   //Note the structure: we still need to keep track of bundles here
   const regularDeltas = tc.historyToRegular(historyDeltas);
-  //console.log("RegularDeltas:", JSON.stringify(regularDeltas));
+  console.log("RegularDeltas:", JSON.stringify(regularDeltas));
   
   //Filter bundles into bundles about files and bundles not about files. (NF = NoFiles, F = Files)
   const filteredBundles = filterFilesOnBundles(regularDeltas.deltas);
@@ -84,7 +85,7 @@ async function ingestDeltas() {
   const regularDeltasF  = filteredBundles.bundlesFiles;
   
   //Save triples in own store (that are not about files)
-  //await storeDeltas(regularDeltasNF);
+  await storeDeltas(regularDeltasNF);
   
   //Retreive files, store locally, and update file information
   //TODO consider using the FileService? We will not have to store the file triples, but get information from the file service and change the history to make it consistent. OR find a better way to decrease the overlap of this and the file service.
@@ -145,6 +146,7 @@ function getDeltas(startSequence) {
 }
 
 async function processFilesAndStoreDeltas(bundles) {
+  console.log("Processing files and storing deltas");
   if (bundles.length < 1) return;
   //Do per bundle
     //Find distinct file uuid's for insert and delete
@@ -155,21 +157,22 @@ async function processFilesAndStoreDeltas(bundles) {
     //let insertFileUUIDs = getUUIDsFromTriples(bundle.inserts);
     //let deleteFileUUIDs = getUUIDsFromTriples(bundle.deletes);
 
-    //Get some data of the form: [ { uuid: "3453", ext: "rdf" }, ... ]
+    //Get some data of the form: [ { vuuid: "3453", puuid: "3454",  ext: "rdf" }, ... ]
     let insertFilesExt = getFileUUIDExts(bundle.inserts);
     let deleteFilesExt = getFileUUIDExts(bundle.deletes);
 
     for (let file of insertFilesExt) {
       //Go download all the files from the other stack and save locally
       //TODO await? Can we do multiple downloads at once using JS's IO multithreading? How many at most?
-      await downloadAndSaveFile(file.vuuid, file.ext);
+      console.log("Starting the download process");
+      await downloadAndSaveFile(file.vuuid, file.puuid, file.ext);
     }
     //Also store the file triples in the database
     await storeInserts(bundle.inserts);
 
     for (let file of deleteFilesExt) {
       //Delete files from local storage
-      await deleteFile(file.puuid); //TODO see previous todo
+      await deleteFile(`${file.puuid}.${file.ext}`); //TODO see previous todo
     }
   
     //Also store/delete the file triples in the database
@@ -215,7 +218,7 @@ async function storeDeltas(regularDeltas) {
   //                        {}, ...
   //                     ] }
   //Execute bundles in order!
-  for (let bundle of regularDeltas.deltas) {
+  for (let bundle of regularDeltas) {
     //Execute these in this order!
     await storeInserts(bundle.inserts); //Not as mu-auth-sudo, auth will need to put in the correct graphs
     await storeDeletes(bundle.deletes); //%
@@ -270,17 +273,28 @@ async function storeDeletes(deletes) {
 // File function 
 ///////////////////////////////////////////////////////////////////////////////
 
-async function deleteFile(path) {
-  return fs.rm(path);
+async function deleteFile(name) {
+  let path = LOCAL_STORAGE_PATH.concat(name);
+  console.log("Removing file with path:", path);
+  return new Promise((resolve, reject) => {
+    fs.rm(path, { force: false }, err => {
+      if (err)
+        reject(err)
+      else {
+        console.log("Removing file gave message:", err);
+        resolve()
+      }
+    });
+  });
 }
 
-async function downloadAndSaveFile(uuid, ext) {
+async function downloadAndSaveFile(vuuid, puuid, ext) {
 
   //The data for the tunnel, will be posted to it
   let postData = JSON.stringify({
     peer:   TUNNEL_DEST_IDENTITY,
     method: 'GET',
-    url:    FILE_DL_URL.replace(":id", uuid)
+    url:    FILE_DL_URL.replace(":id", vuuid)
   });
 
   //The options for the http request to the tunnel
@@ -295,7 +309,7 @@ async function downloadAndSaveFile(uuid, ext) {
     }
   };
 
-  console.log("Will download the file with uuid", uuid);
+  console.log("Will download the file with uuid", vuuid);
 
   return new Promise((resolve, reject) => {
 
@@ -306,12 +320,12 @@ async function downloadAndSaveFile(uuid, ext) {
       console.log("Inside the callback of the request.");
       //Open FileHandle and create WriteStream to it
       //FOR NODE 16 and up:
-        //let writeFileHandle = await fs.open(`${uuid}.${ext}`, "wx");
+        //let writeFileHandle = await fs.open(`${puuid}.${ext}`, "wx");
         //let writeStream     = await writeFileHandle.createWriteStream();
       //FOR NODE 14:
-      let writeStream = fs.createWriteStream(`${LOCAL_STORAGE_PATH}/${uuid}.${ext}`, { flags: "wx" });
+      let writeStream = fs.createWriteStream(`${LOCAL_STORAGE_PATH}/${puuid}.${ext}`, { flags: "wx" });
       //You would want to use flags wx to prevent file from being overwritten
-      //let writeStream = fs.createWriteStream(`${LOCAL_STORAGE_PATH}/${uuid}.${ext}`, { flags: "w" });
+      //let writeStream = fs.createWriteStream(`${LOCAL_STORAGE_PATH}/${puuid}.${ext}`, { flags: "w" });
       console.log("Opened writeStream");
       //Close the file properly
       //FOR NODE 16 and up:
@@ -353,7 +367,6 @@ async function downloadAndSaveFile(uuid, ext) {
         resolve();
       });
     });
-    
 
     req.on("timeout", (err) => {
       console.error(err);
@@ -386,6 +399,7 @@ Array.prototype.partition = function (pred) {
 }
 
 function filterFilesOnBundles(bundles) {
+  //console.log("Filtering files from the bundles", JSON.stringify(bundles));
   //On bundles with inserts and deletes, create bundles that have files and no files.
   let bundlesFiles = [], bundlesNoFiles = [];
   let filteredInserts, filteredDeletes;

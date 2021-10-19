@@ -5,6 +5,7 @@ import express from 'express';
 import * as book from './Book.js';
 import * as tq from './testqueries.js';
 import * as diff from "diff";
+import * as f from './files.js';
 //import * as diff2html from "diff2html";
 
 //Names for communicating to the consumer
@@ -14,7 +15,7 @@ const TUNNEL_DEST_IDENTITY   = process.env.TUNNEL_DEST_IDENTITY || 'consumer@red
 const CONSUMERTEST_BASE_URL  = process.env.DELTA_BASE_URL       || 'http://consumertest';
 const CONSUMER_ENDPOINT      = `${CONSUMERTEST_BASE_URL}/doquery`;
 
-app.use(express.json());
+//app.use(express.json());
 
 app.get("/clear", async function(req, res) {
   //Drop all data in databases used by testing
@@ -110,6 +111,22 @@ app.get("/test3", async function(req, res) {
   await update(queryChange);
 
   res.status(200).json({ executed: [ query, queryChange ] });
+});
+
+app.get("/testFile1", async function(req, res) {
+  //Upload a file with some random data to the file service
+  let result = f.saveFile();
+  res.status(200).json({ result });
+});
+
+app.get("/testFile2", async function(req, res) {
+  //Upload a file with some random data to the file service
+  let result = [];
+  for (let i = 0; i < 5; i++) {
+    result.push(f.saveFile());
+  }
+  await Promise.all(result);
+  res.status(200).json({ result });
 });
 
 app.get("/check", async function(req, res) {
