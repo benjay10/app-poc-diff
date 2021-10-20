@@ -37,30 +37,41 @@ app.get("/clear", async function(req, res) {
 app.get("/test", async function(req, res) {
   //Insert data
 
-  let books, queryBody, query;
+  let books, queryBody, query, allBooks;
+  allBooks = [];
   //Large set of data at first in chunks, because the database cannot handle such large history queries
-  for (let i = 0; i < 3; i++) {
+  for (let i = 0; i < 10; i++) {
     books     = book.makeBooks(10);
     queryBody = books.map((b) => b.insertQueryBody()).join("\n ");
     query     = tq.insertDataPublic(queryBody);
-    console.log("TEST query", query);
+    allBooks  = allBooks.concat(books);
     await update(query);
   }
   
-  //Smaller sets with time inbetween
-  
   //Make updates to some items
-  //let changes     = book.changeRandomBooks(20, books);
-  //let inserts     = changes.map((change) => change.inserts).join(" ");
-  //let deletes     = changes.map((change) => change.deletes).join(" ");
-  //let queryChange = tq.changeDataPublic(inserts, deletes);
-  //await update(queryChange);
+  let changes     = book.changeRandomBooks(3, books);
+  let inserts     = changes.map((change) => change.inserts).join(" ");
+  let deletes     = changes.map((change) => change.deletes).join(" ");
+  let queryChange = tq.changeDataPublic(inserts, deletes);
+  await update(queryChange);
   
   //Make updates to the same item in a row
+  let changingBook = allBooks[5];
+  for (let i = 0; i < 10; i++) {
+    changes = changingBook.changeAndQueryBodies();
+    await update(tq.changeDataPublic(changes.inserts, changes.deletes));
+  }
   
   //Remove a bunch
+  let picks   = book.pickRandomBooks(10, allBooks);
+  deletes = picks.map((book) => book.deleteQueryBody()).join(" ");
   
   //Insert some more
+  books     = book.makeBooks(10);
+  queryBody = books.map((b) => b.insertQueryBody()).join("\n ");
+  query     = tq.insertDataPublic(queryBody);
+  allBooks  = allBooks.concat(books);
+  await update(query);
 
   res.status(200).json({ executed: query });
 });
@@ -104,6 +115,7 @@ app.get("/test3", async function(req, res) {
   let query     = tq.insertDataPublic(queryBody);
   await update(query);
 
+  //Bring a change to the book
   let changes     = books.map((book) => book.changeAndQueryBodies());
   let inserts     = changes.map((change) => change.inserts).join(" ");
   let deletes     = changes.map((change) => change.deletes).join(" ");
@@ -145,6 +157,15 @@ app.get("/check", async function(req, res) {
   //Check equality between databases
   let publicDiffs  = diff.diffJson(localPublicResults.results.bindings,  remotePublicResults.results.bindings);
   let historyDiffs = diff.diffJson(localHistoryResults.results.bindings, remoteHistoryResults.results.bindings);
+
+  ////Check equality between databases, based on string versions of the JSON data
+  //console.log("Stringifying local data");
+  //let localPublic   = JSON.stringify(localPublicResults.results.bindings);
+  //let remotePublic  = JSON.stringify(remotePublicResults.results.bindings);
+  //let localHistory  = JSON.stringify(localHistoryResults.results.bindings);
+  //let remoteHistory = JSON.stringify(remoteHistoryResults.results.bindings);
+  //let publicDiffs   = diff.diffChars(localPublic, remotePublic);
+  //let historyDiffs  = diff.diffChars(localHistory, remoteHistory);
 
   //let nicePublicDiffs  = diff2html.html(publicDiffs);
   //let niceHistoryDiffs = diff2html.html(historyDiffs);

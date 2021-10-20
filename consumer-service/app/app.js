@@ -67,7 +67,10 @@ async function ingestDeltas() {
 
   //No deltas means early stop
   if (historyDeltas.updates && historyDeltas.updates.length < 1) return { result: "Nothing to do" };
-  
+  //console.log("HistoryDeltas:", JSON.stringify(historyDeltas));
+  //let rdf = historyDeltas.updates.map(tc.tripleToRDF);
+  //console.log("HistoryDeltas in RDF:", JSON.stringify(rdf));
+
   //Save history in own store
   await storeHistoryFromDeltas(historyDeltas);
   
@@ -76,7 +79,7 @@ async function ingestDeltas() {
   //Transform history into regular deltas (i.e. { deltas: [ { inserts: [], deletes: [] },  {...} ] })
   //Note the structure: we still need to keep track of bundles here
   const regularDeltas = tc.historyToRegular(historyDeltas);
-  console.log("RegularDeltas:", JSON.stringify(regularDeltas));
+  //console.log("RegularDeltas:", JSON.stringify(regularDeltas));
   
   //Filter bundles into bundles about files and bundles not about files. (NF = NoFiles, F = Files)
   const filteredBundles = filterFilesOnBundles(regularDeltas.deltas);

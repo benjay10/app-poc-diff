@@ -15,8 +15,8 @@ mu.app.use(bodyParser.json({ type: function(req) { return /^application\/json/.t
 const DELTA_INTERVAL  = process.env.DELTA_INTERVAL_MS || 1000;
 const HISTORYGRAPH    = "http://mu.semte.ch/graphs/history";
 
-let cache      = [];
-let hasTimeout = false;
+let queue             = [];
+let asyncExectionBusy = false;
 
 ///////////////////////////////////////////////////////////////////////////////
 // Controller functions
@@ -36,8 +36,12 @@ mu.app.post('/delta', async function(req, res) {
   //}
   //console.log("Timeout triggered, now returning HTTP code 200");
 
-  console.log(`Processing: ${JSON.stringify(body)}`);
-  await executeDeltaUpdates(body);
+  //Put the data in the big queue
+  body.forEach((bundle) => queue.push(bundle));
+  triggerAsyncExecutionOfDeltas();
+
+  //console.log(`Processing: ${JSON.stringify(body)}`);
+  //await executeDeltaUpdates(body);
 
   res.status(200).send("Processed");
 });
@@ -79,15 +83,49 @@ mu.app.get('/deltas', async function(req, res) {
 //  }, DELTA_INTERVAL);
 //}
 
-function executeDeltaUpdates(bundles) {
+function triggerAsyncExecutionOfDeltas() {
+  if (!asyncExectionBusy) {
+    setTimeout(processDeltaUpdate, 0);
+    asyncExectionBusy = true;
+  }
+}
+
+async function processDeltaUpdate() {
+
+  console.log("Starting on a bundle");
+
+  //Pop 1 update bundle from the queue
+  let firstBundle = queue.shift();
+
+  try {
+    //Process it and wait for it to finish
+    await executeDeltaUpdates(firstBundle);
+  }
+  catch (err) {
+    console.error("Processing deltas failed", err);
+  }
+  finally {
+    //If still more bundles, shedule a timeout for the next one
+    //If no more bundles, no timeout and release the flag
+    if (queue.length > 0) {
+      setTimeout(processDeltaUpdate, 0);
+      console.log("Bundle finished, next bundle sheduled");
+    } else {
+      asyncExectionBusy = false;
+      console.log("All bundles finished, waiting for the next one.");
+    }
+  }
+}
+
+function executeDeltaUpdates(bundle) {
 
   //console.log("These are the updates:", JSON.stringify(data));
-  console.log("Inserting deltas as history in the database");
+  //console.log("Inserting deltas as history in the database");
   
   let storeP = Promise.resolve(true);
   
   try {
-    for (let bundle of bundles) {
+    //for (let bundle of bundles) {
       //Find updates, rather than only deletes and inserts
       const filteredTriples = splitUpdatesApart(bundle);
       const updates = filteredTriples.updates;
@@ -103,13 +141,13 @@ function executeDeltaUpdates(bundles) {
       storeP = storeP.then(() => storeUpdates(inserts, "insert"))
                      .then(() => storeUpdates(updates, "update"))
                      .then(() => storeUpdates(deletes, "delete"));
-    }
+    //}
   }
   catch (err) {
     console.error(err);
   }
 
-  console.log("Done inserting deltas as history");
+  //console.log("Done inserting deltas as history");
 
   return storeP;
 }
@@ -225,5 +263,11 @@ function splitUpdatesApart(bundle) {
   }
 
   return { inserts: newInserts, updates: updates, deletes: deletes };
+}
+
+Array.prototype.popStart = function () {
+  let first = (this.length > 0) ? this[0] : undefined;
+  this.splice(1);
+  return first;
 }
 
