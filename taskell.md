@@ -18,14 +18,17 @@
     * [ ] Delta notifier needs to give graph information
     * [ ] Add graph to history
     * [ ] Consumer stores data in correct graphs
-
-## Doing
-
 - Make README
     * [ ] Make nice diagram with details about file data formats
     * [ ] Make information flow graph between services, tunnels, etc.
-    * [ ] Remove old information
-    * [ ] Update information to reflect the new system
+    * [x] Remove old information
+    * [x] Update information to reflect the new system
+- Failing tests
+    > Some data on /tests is not correct yet.
+    * [ ] Tests have succeeded before, is this some race condition that only happens sometimes?
+
+## Doing
+
 
 ## Done
 
