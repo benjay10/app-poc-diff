@@ -103,3 +103,9 @@ to get
 
 (or maybe using prefix notation).
 
+This framework could also be used for exporting into JSON-LD, to generate SPARQL insert queries, delete queries, ...
+
+## Linked data event streams
+
+There seems to exist a standard for producing event streams using linked open data? Can we use this here?
+
