@@ -1,0 +1,124 @@
+prefix bks: <http://mu.semte.ch/services/github/madnificent/book-service/books/>
+prefix schm: <http://schema.org/>
+prefix nfo: <http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#>
+prefix nie: <http://www.semanticdesktop.org/ontologies/2007/01/19/nie#>
+prefix dct: <http://purl.org/dc/terms/>
+prefix dbpedia: <http://dbpedia.org/ontology/>
+prefix de: <http://mu.semte.ch/vocabularies/delta/>
+
+# Select all books
+
+select *
+where {
+	graph ?g {
+		?s ?p schm:Book .
+	}
+}
+
+select *
+where {
+	graph <http://mu.semte.ch/graphs/public> {
+		#?s ?p schm:Book .
+                ?s ?p ?o .
+	}
+}
+
+# Remove all books
+
+delete {
+	graph ?g {
+		?s ?p ?o .
+	}
+}
+where {
+	graph ?g {
+		?s ?p ?o .
+		?s a schm:Book .
+	}
+}
+
+# Select all Files
+
+select ?g ?name
+where {
+	graph ?g {
+		?s ?p nfo:FileDataObject .
+		?s nfo:fileName ?name .
+	}
+}
+
+# Remove all Files
+
+delete {
+	graph ?g {
+		?s ?p ?o .
+	}
+}
+where {
+	graph ?g {
+		?s ?p ?o .
+		?s a  nfo:FileDataObject .
+	}
+}
+
+# Select all History items
+
+select ?g ?s {
+	graph ?g {
+		?s a de:History .
+	}
+}
+
+# Select history ordered
+
+SELECT ?s ?p ?o {
+  GRAPH <http://mu.semte.ch/graphs/history> {
+    ?s ?p ?o .
+  }
+}
+ORDER BY ?s ?p
+
+# Remove all History items
+
+DELETE {
+	GRAPH ?g {
+		?s ?p ?o .
+	}
+}
+WHERE {
+	GRAPH ?g {
+		?s ?p ?o .
+		?s a de:History . 
+	}
+}
+
+# Testing if double items get removed
+
+INSERT DATA {
+	GRAPH <http://mu.semte.ch/graphs/testspace/> {
+		de:test1 de:value 1 .
+		de:test1 de:value 1 .
+	}
+}
+INSERT DATA {
+	GRAPH <http://mu.semte.ch/graphs/testspace/> {
+		de:test1 de:value "1"^^xsd:integer .
+	}
+}
+
+SELECT * {
+	GRAPH <http://mu.semte.ch/graphs/testspace/> {
+		?s ?p ?o .
+	}
+}
+
+DELETE {
+	GRAPH <http://mu.semte.ch/graphs/testspace/> {
+		de:test1 de:value 1 .
+	}
+}
+WHERE {
+	GRAPH <http://mu.semte.ch/graphs/testspace/> {
+		de:test1 de:value 1 .
+	}
+}
